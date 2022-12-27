@@ -1,9 +1,9 @@
 # OSI_Stana
 
 # Required software
-docker 
-docker-compose
-MySql Workbench
+1. docker 
+2. docker-compose
+3. MySql Workbench
 
 # Setup
 1. Clone this repository
