@@ -1,0 +1,22 @@
+Podjela mikroservisa:
+	1. Users
+		>Registracija
+		>Log in
+		>Log out
+		>Suspenzija
+		>Aktivacija naloga
+		>Promjena sifre
+		>Editovanje detalja
+		>...
+	2. Tickets
+		>Kupovina karata
+		>Generisanje karata
+		>Otkazivanja karata
+	3. Reports
+		>Primanje reportova
+		>Generisanje report dokumenata
+	4. Notifications
+		>Slanje mejlova
+	5. API
+		>Kreiranje ruta i stanica
+		>Ostalo
