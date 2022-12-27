@@ -12,7 +12,14 @@ services:
   api:
     build: ./api
     ports:
-      - "3000:3000"
+      - "3001:3000"
+    depends_on:
+      - database
+    restart: always
+  users:
+    build: ./users
+    ports:
+      - "3002:3000"
     depends_on:
       - database
     restart: always
