@@ -37,3 +37,10 @@ services:
     depends_on:
       - database
     restart: always
+  notifications:
+    build: ./notifications
+    ports:
+      - "3005:3000"
+    depends_on:
+      - database
+    restart: always
