@@ -70,6 +70,7 @@ int main()
 			crow::json::wvalue res = list_users();
 			return list_users();
 		});
+	std::cout<<"Running on: http://120.0.0.1:3001"<<std::endl;
 	app.port(params::port).run();
 	return 0;
 }
