@@ -23,7 +23,6 @@ crow::json::wvalue list_users()
 		crow::json::wvalue result;
 
 		driver = get_driver_instance();
-		std::cout<<"Connecting: "<<params::db_address<<"	"<<params::db_user<<"	"<<params::db_password<<"	" <<std::endl;
 		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
