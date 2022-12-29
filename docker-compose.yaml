@@ -8,6 +8,7 @@ services:
     expose:
       - 3306
     volumes: 
+      - ./setup_data/OSI_1.04.sql:/docker-enrtypoint-initdb.d/0_init.sql
       - ./database:/var/lib/mysql
     environment:
       MYSQL_USER: ${DB_USER}
