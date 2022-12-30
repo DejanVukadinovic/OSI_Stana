@@ -11,8 +11,7 @@ services:
       - ./setup_data/OSI_1.04.sql:/docker-enrtypoint-initdb.d/0_init.sql
       - ./database:/var/lib/mysql
     environment:
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
   api:
     build: ./api
