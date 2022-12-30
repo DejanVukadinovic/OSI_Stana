@@ -25,7 +25,8 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME} 
+      DB_NAME: ${DB_NAME}
+      JWT_KEY: ${JWT_KEY}
   users:
     build: ./users
     ports:
@@ -38,7 +39,8 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}  
+      DB_NAME: ${DB_NAME} 
+      JWT_KEY: ${JWT_KEY}
   tickets:
     build: ./tickets
     ports:
@@ -52,6 +54,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME} 
+      JWT_KEY: ${JWT_KEY}
   reports:
     build: ./reports
     ports:
@@ -64,6 +67,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME} 
+      JWT_KEY: ${JWT_KEY}
     restart: always
   notifications:
     build: ./notifications
@@ -78,3 +82,5 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME} 
+      JWT_KEY: ${JWT_KEY}
+
