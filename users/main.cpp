@@ -59,6 +59,9 @@ crow::json::wvalue list_users()
 	}		
 }
 
+//majin komentar
+
+
 crow::json::wvalue login_user(const std::string username, const std::string password)
 {
 	try
@@ -125,6 +128,7 @@ crow::json::wvalue login_user(const std::string username, const std::string pass
 		return  ret;																
 	}		
 }
+
 
 int main()
 {
