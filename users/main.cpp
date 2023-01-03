@@ -103,8 +103,9 @@ crow::json::wvalue login_user(const std::string username, const std::string pass
 			
 			if(login){
 			std::string jwt_key = getenv("JWT_KEY");
+			std::string username = res->getString("username");
 			// Pogledati dokumentaciju na https://github.com/arun11299/cpp-jwt jer tu biblioteku koristimo
-			jwt::jwt_object obj{jwt::params::algorithm("HS256"), jwt::params::payload({{"some", "payload"}}), jwt::params::secret(jwt_key)};
+			jwt::jwt_object obj{jwt::params::algorithm("HS256"), jwt::params::payload({{"user", username}}), jwt::params::secret(jwt_key)};
 			auto enc_str = obj.signature();
 			result["token"] = enc_str;
 			}
