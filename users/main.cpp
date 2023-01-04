@@ -197,6 +197,48 @@ crow::json::wvalue register_user(const std::string username, const std::string p
 	}		
 }
 
+crow::json::wvalue edit_profile(const std::string username,const std::string new_name)
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
+
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+        stmt = con->prepareStatement("UPDATE user SET name=? WHERE user.username=?");
+		stmt->setString(1, new_name);
+		stmt->setString(2, username);
+		res=stmt->executeQuery();
+		std::string message="Name changed";
+		result["Message"]=message;
+		
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+	}
+
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
+
 int main()
 {
 	crow::SimpleApp app;
@@ -229,6 +271,16 @@ int main()
 			const std::string name = req.get_header_value("name");
 			const std::string user_type=req.get_header_value("user_type");
 			crow::json::wvalue result = register_user(username, password,name,user_type);
+			return result;
+		});
+		CROW_ROUTE(app, "/edit_profile")([](const crow::request& req)
+		{
+			std::string body = req.body;
+			std::cout<<body<<std::endl;
+			std::string first = body.substr(body.find("\n")+1, body.find(";"));
+			const std::string username = req.get_header_value("username");
+			const std::string name = req.get_header_value("name");
+			crow::json::wvalue result = edit_profile(username,name);
 			return result;
 		});
 	std::cout<<"Running on: http://120.0.0.1:3002"<<std::endl;
