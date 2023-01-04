@@ -432,7 +432,55 @@ crow::json::wvalue delete_user(const std::string username)
 		return  ret;																
 	}		
 }
+crow::json::wvalue password_change(const std::string username,const std::string new_password, const std::string old_password)
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
 
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+        std::string message;
+        if(old_password != new_pasword){
+            std::string protected_password = sha256(new_password);
+            stmt = con->prepareStatement("UPDATE user SET password=? WHERE user.username=?");
+		    stmt->setString(1, protected_password);
+		    stmt->setString(2, username);
+		    res=stmt->executeQuery();
+		    message="Password changed";
+		    result["Message"]=message;
+        }
+        else{
+            message="New password and old password are the same!"
+            result["Message"]=message;
+            }
+
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+	}
+
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
 
 int main()
 {
@@ -505,6 +553,19 @@ int main()
 			crow::json::wvalue result = delete_user(username);
 			return result;
 		});
+
+		CROW_ROUTE(app, "/password_change")([](const crow::request& req)
+		{
+			std::string body = req.body;
+			std::cout<<body<<std::endl;
+			std::string first = body.substr(body.find("\n")+1, body.find(";"));
+			const std::string username = req.get_header_value("username");
+			const std::string old_password = req.get_header_value("old_password");
+            const std::string new_password = req.get_header_value("new_password");
+			crow::json::wvalue result = password_change(username,new_password,old_password);
+			return result;
+		});
+
 	std::cout<<"Running on: http://120.0.0.1:3002"<<std::endl;
 	app.port(params::port).run();
 	return 0;
