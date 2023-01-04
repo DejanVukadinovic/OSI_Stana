@@ -59,8 +59,6 @@ crow::json::wvalue list_users()
 	}		
 }
 
-//majin komentar
-
 
 crow::json::wvalue login_user(const std::string username, const std::string password)
 {
@@ -130,6 +128,74 @@ crow::json::wvalue login_user(const std::string username, const std::string pass
 	}		
 }
 
+crow::json::wvalue register_user(const std::string username, const std::string password_p,const std::string name,const std::string user_type)
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
+
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
+		stmt->setString(1, username);
+		res=stmt->executeQuery();
+		res->beforeFirst();
+		if(res->next())
+		{
+		std::string message="Error: Username already exists";
+		result["Message"]=message;
+		}
+		else 
+		{   
+		std::string password= sha256(password_p);
+		res->afterLast();
+		stmt = con->prepareStatement("INSERT INTO user(username,password,name,deleted,user_type) VALUES(?,?,?,?,?)");
+		stmt->setString(1, username);
+		stmt->setString(2, password);
+		stmt->setString(3, name);
+		stmt->setInt(4, 0);
+		if(user_type=="Admin")
+		{
+		    stmt->setInt(5, 0);
+		}
+		else if (user_type=="Driver")
+		{
+			stmt->setInt(5, 1);
+		}
+		else
+		{
+			stmt->setInt(5, 2);
+		}
+		res=stmt->executeQuery();
+		std::string message="Status: true";
+		result["Message"]=message;
+		}
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+
+	}
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
 
 int main()
 {
@@ -151,6 +217,18 @@ int main()
 			const std::string username = req.get_header_value("username");
 			const std::string password = req.get_header_value("password");
 			crow::json::wvalue result = login_user(username, password);
+			return result;
+		});
+		CROW_ROUTE(app, "/register")([](const crow::request& req)
+		{
+			std::string body = req.body;
+			std::cout<<body<<std::endl;
+			std::string first = body.substr(body.find("\n")+1, body.find(";"));
+			const std::string username = req.get_header_value("username");
+			const std::string password = req.get_header_value("password");
+			const std::string name = req.get_header_value("name");
+			const std::string user_type=req.get_header_value("user_type");
+			crow::json::wvalue result = register_user(username, password,name,user_type);
 			return result;
 		});
 	std::cout<<"Running on: http://120.0.0.1:3002"<<std::endl;
