@@ -448,7 +448,7 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 		con->setSchema(getenv("DB_NAME"));
 
         std::string message;
-        if(old_password != new_pasword){
+        if(old_password != new_password){
             std::string protected_password = sha256(new_password);
             stmt = con->prepareStatement("UPDATE user SET password=? WHERE user.username=?");
 		    stmt->setString(1, protected_password);
@@ -561,7 +561,7 @@ int main()
 			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
 			const std::string old_password = req.get_header_value("old_password");
-            const std::string new_password = req.get_header_value("new_password");
+            	const std::string new_password = req.get_header_value("new_password");
 			crow::json::wvalue result = password_change(username,new_password,old_password);
 			return result;
 		});
