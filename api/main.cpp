@@ -55,6 +55,7 @@ crow::json::wvalue bus_class(const std::string description,double price_coeffici
 	}		
 }
 
+
 int main()
 {
 	crow::SimpleApp app;
