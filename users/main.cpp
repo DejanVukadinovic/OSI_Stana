@@ -458,7 +458,7 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 		    result["Message"]=message;
         }
         else{
-            message="New password and old password are the same!"
+            message="New password and old password are the same!";
             result["Message"]=message;
             }
 
