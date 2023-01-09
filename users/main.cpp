@@ -482,12 +482,10 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 	}		
 }
 
-std::string jwt_return_username(const std::string token){
-    auto enc_str = token;
+std::string jwt_return_username(const std::string& token){
 	std::string jwt_key = getenv("JWT_KEY");
-    auto dec_obj = jwt::decode(enc_str, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
-    auto ret_payload = dec_obj.payload().get_claim_value("username");
-    return ret_payload;
+    auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
+    return dec_obj.payload().get_claim_value<std::string>("username");
 
 }
 
