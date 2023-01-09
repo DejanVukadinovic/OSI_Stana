@@ -130,7 +130,7 @@ int main()
 			const std::string coefficient_s = req.get_header_value("coefficient");
 			const double coefficient= std::stod(coefficient_s);
 			crow::json::wvalue result = discount(min_age,max_age,coefficient);
-			return
+			return result;
 			
 		});
 	std::cout<<"Running on: http://120.0.0.1:3001"<<std::endl;
