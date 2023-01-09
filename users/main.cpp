@@ -36,6 +36,7 @@ crow::json::wvalue list_users()
 			tmp["username"] = res->getString("username");
 			tmp["deleted"] = res->getInt("deleted")?"True":"False";
 			tmp["name"] = res->getString("name");
+			tmp["user type"]=res->getInt("user_type")?(res->getInt("user_type")==1?"Driver":"Passenger"):"Admin";
 			
 			result[res->getString("iduser")] = tmp;
 		}
@@ -58,6 +59,117 @@ crow::json::wvalue list_users()
 		return  ret;																
 	}		
 }
+
+crow::json::wvalue list_drivers()
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
+
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+		stmt = con->prepareStatement("SELECT * FROM user where user_type=  ?");
+		stmt->setInt(1, 1);
+		res = stmt->executeQuery();
+		sql::ResultSet* pom;
+		int id;
+		while (res->next()) {
+			id=res->getInt("iduser");
+			stmt = con->prepareStatement("SELECT * FROM driver where iduser= ?");
+		    stmt->setInt(1, id);
+		    pom = stmt->executeQuery();
+			pom->next();
+			crow::json::wvalue::object tmp;
+			tmp["username"] = res->getString("username");
+			tmp["deleted"] = res->getInt("deleted")?"True":"False";
+			tmp["suspended"] = pom->getInt("suspended")?"True":"False";
+			tmp["name"] = res->getString("name");
+			
+			
+			result[pom->getString("iddriver")] = tmp;
+		}
+
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+	}
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
+
+crow::json::wvalue list_passengers()
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
+
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+		stmt = con->prepareStatement("SELECT * FROM user where user_type=  ?");
+		stmt->setInt(1, 2);
+		res = stmt->executeQuery();
+		sql::ResultSet* pom;
+		int id;
+		while (res->next()) {
+			id=res->getInt("iduser");
+			stmt = con->prepareStatement("SELECT * FROM passenger where iduser= ?");
+		    stmt->setInt(1, id);
+		    pom = stmt->executeQuery();
+			pom->next();
+			crow::json::wvalue::object tmp;
+			tmp["username"] = res->getString("username");
+			tmp["deleted"] = res->getInt("deleted")?"True":"False";
+			tmp["suspended"] = pom->getInt("suspended")?"True":"False";
+			tmp["name"] = res->getString("name");
+			
+			
+			result[pom->getString("idpassenger")] = tmp;
+		}
+
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+	}
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
+
 
 
 crow::json::wvalue login_user(const std::string username, const std::string password)
@@ -572,6 +684,16 @@ int main()
 			crow::json::wvalue result = password_change(username,new_password,old_password);
 			return result;
 		});
+
+		CROW_ROUTE(app, "/list_drivers")([]()
+		{
+			return list_drivers();
+		});
+		CROW_ROUTE(app, "/list_passengers")([]()
+		{
+			return list_passengers();
+		});
+
 
 	std::cout<<"Running on: http://120.0.0.1:3002"<<std::endl;
 	app.port(params::port).run();
