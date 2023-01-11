@@ -19,15 +19,6 @@ let con = mysql.createConnection({
     password:process.env.DB_PASSWORD,
     database: process.env.DB_NAME
 })
-console.log(process.env.DB_ADRESS,process.env.DB_USER,process.env.DB_PASSWORD,process.env.DB_NAME )
-con.connect(err=>{
-    if(err) throw err;
-    con.query("SELECT * FROM user", (err, result, fields)=>{
-        if(err)throw err
-        console.log(result)
-        }
-    )
-})
 
 const jsonParser = bodyParser.json()
 
@@ -54,14 +45,7 @@ function authenticateToken(req, res, next) {
 
 const app = express()
 app.get('/', (req, res)=>{
-    res.send(process.env.DB_HOST + process.env.DB_USER + process.env.DB_PASSWORD + process.env.DB_NAME)
-    con.connect(err=>{
-        if(err) throw err;
-        con.query("SELECT * FROM user", (err, result, fields)=>{
-            if(err)throw err
-            }
-        )
-    })
+    res.send("Hello world!!")
 })
 app.post('/ticket/create', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err) {
