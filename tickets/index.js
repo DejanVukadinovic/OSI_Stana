@@ -3,7 +3,12 @@
 //require('dotenv').config()
 const express = require("express");
 const mysql = require("mysql2")
-
+const jwt = require("jsonwebtoken")
+const fs = require('fs');
+const axios = require('axios');
+const FormData = require('form-data');
+const Mustache = require('mustache');
+const bodyParser = require('body-parser')
 
 const PORT = 3000;
 const HOST = '0.0.0.0'
@@ -24,6 +29,29 @@ con.connect(err=>{
     )
 })
 
+const jsonParser = bodyParser.json()
+
+const generation = {
+	html: 'index.html',
+};
+
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+  
+    if (token == null) return res.send(req.headers)
+  
+    jwt.verify(token, process.env.JWT_KEY, (err, user) => {
+      console.log(err)
+  
+      if (err) return res.send(token, 403)
+  
+      req.user = user
+  
+      next()
+    })
+  }
+
 const app = express()
 app.get('/', (req, res)=>{
     res.send(process.env.DB_HOST + process.env.DB_USER + process.env.DB_PASSWORD + process.env.DB_NAME)
@@ -31,42 +59,76 @@ app.get('/', (req, res)=>{
         if(err) throw err;
         con.query("SELECT * FROM user", (err, result, fields)=>{
             if(err)throw err
-            console.log(result)
             }
         )
     })
 })
-app.get('/ticket/create', (req, res)=>{
-    const mreq = {
-        route: 1,
-        user: 3,
-        nTickets: 1
-    }
+app.post('/ticket/create', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err) {
         if(err) throw err;
-        const [userRes] = await con.promise().query("SELECT * FROM user NATURAL JOIN bank_account NATURAL JOIN passenger where iduser = ?", [mreq.user])
-        const [routeRes] = await con.promise().query("SELECT * FROM route NATURAL JOIN route_has_bus NATURAL JOIN bus NATURAL JOIN bus_class WHERE idroute = ?", [mreq.route])
-        let isAvaliable = (routeRes[0].seats-routeRes[0].tickets_sold>mreq.nTickets);
+        
+        const [userRes] = await con.promise().query("SELECT * FROM user NATURAL JOIN bank_account NATURAL JOIN passenger where username = ?", [req.user.user])
+        const [routeRes] = await con.promise().query("SELECT * FROM route NATURAL JOIN route_has_bus NATURAL JOIN bus NATURAL JOIN bus_class WHERE idroute = ?", [req.body.route])
+        let isAvaliable = (routeRes[0].seats-routeRes[0].tickets_sold>req.body.nTickets);
         let canBuy = false
-        let ticket
+        let ticketList = []
+        console.log(userRes[0].idpassenger, isAvaliable)
         if(isAvaliable){
-            if(userRes[0].balance>mreq.nTickets*routeRes[0].price*routeRes[0].price_coefficient){
+            console.log(userRes[0].balance>req.body.nTickets*routeRes[0].price*routeRes[0].price_coefficient)
+            if(userRes[0].balance>req.body.nTickets*routeRes[0].price*routeRes[0].price_coefficient){
+                console.log("tu smo, req")
                 canBuy = true
-                con.query("UPDATE route SET tickets_sold = ? WHERE idroute = ?", [routeRes[0].tickets_sold+mreq.nTickets, routeRes[0].idroute])
-                con.query("UPDATE bank_account SET balance = ? WHERE iduser = ?", [userRes[0].balance-mreq.nTickets*routeRes[0].price*routeRes[0].price_coefficient, mreq.user])
-                for (let i = 0; i < mreq.nTickets; i++) {
+                con.query("UPDATE route SET tickets_sold = ? WHERE idroute = ?", [routeRes[0].tickets_sold+req.body.nTickets, routeRes[0].idroute])
+                console.log([userRes[0].balance-req.body.nTickets*routeRes[0].price*routeRes[0].price_coefficient, userRes[0].idpassenger])
+                con.query("UPDATE bank_account SET balance = ? WHERE idpassenger = ?", [userRes[0].balance-req.body.nTickets*routeRes[0].price*routeRes[0].price_coefficient, userRes[0].idpassenger])
+                for (let i = 0; i < req.body.nTickets; i++) {
                     let price= routeRes[0].price*routeRes[0].price_coefficient
                     con.query("INSERT INTO ticket (base_price, luggage, idpassenger) VALUES (?, ?, ?)", [price, 0, userRes[0].idpassenger])
-                    ticket = await con.promise().query("SELECT idticket FROM ticket where idpassenger = ? ORDER BY idticket DESC LIMIT 1", [userRes[0].idpassenger])
-                    con.query("INSERT INTO route_has_ticket (idroute, idpassenger, idticket) VALUES (?, ?, ?)", [mreq.route, userRes[0].idpassenger, ticket[0][0].idticket ])
+                    let [ticket] = await con.promise().query("SELECT idticket FROM ticket where idpassenger = ? ORDER BY idticket DESC LIMIT 1", [userRes[0].idpassenger])
+                    console.log("ticket: ")
+                    console.log([price, 0, userRes[0].idpassenger])
+                    con.query("INSERT INTO route_has_ticket (idroute, idpassenger, idticket) VALUES (?, ?, ?)", [req.body.route, userRes[0].idpassenger, ticket[0].idticket ])
+                    let [ticketdata] = await con.promise().query("SELECT * FROM ticket NATURAL JOIN route where idticket = ?", [ticket[0].idticket])
+                    ticketList.push(ticket[0])
+                    console.log(JSON.stringify(routeRes[0].time).split("T")[0].slice(1), JSON.stringify(routeRes[0].time).split("T")[1].slice(0, -6))
+                    const data = {
+                        route: routeRes[0].idroute,
+                        date:JSON.stringify(routeRes[0].time).split("T")[0].slice(1),
+                        time:JSON.stringify(routeRes[0].time).split("T")[1].slice(0, -6),
+                        passenger:userRes[0].name,
+                        price:price
+                      }
+                      // Read the HTML template from disk.
+                      const template = fs.readFileSync('index.html', { encoding: 'utf8' });
+                      const filledTemplate = Mustache.render(template, data);
+                      const body = new FormData();
+                        body.append('index.html', filledTemplate, { filename: 'index.html' });
+                        body.append('generation', JSON.stringify(generation));
+                      (async () => {
+                        // Send the request to Processor.
+                        const response = await axios.post('http://pdfprocessor:5000/process', body, {
+                            headers: body.getHeaders(),
+                            responseType: 'stream',
+                        });
+                        // Save the result to a file on disk.
+                        await response.data.pipe(fs.createWriteStream(`tickets/ticket-${ticket[0].idticket}.pdf`));
+                    })();
                     
-                }
-            }
-        }
-        res.send({ticket:ticket[0][0], newBalance:{balance:userRes[0].balance, price:userRes[0].balance-mreq.nTickets*routeRes[0].price*routeRes[0].price_coefficient}})
+                }res.send({"ticket":ticketList})
+            }else{res.send("Not enough money")}
+        }else{res.send("Not avaliable")}
     })
     //res.send("CREATING TICKET")
 })
 
+app.get("/tickets", authenticateToken, (req, res)=>{
+    con.connect( async function(err){
+        if(err) {res.send(500);throw err};
+        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.user])
+        res.send(tickets)
+    })
+})
+
+app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3003`)

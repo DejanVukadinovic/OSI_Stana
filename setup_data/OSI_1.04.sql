@@ -272,7 +272,7 @@ CREATE TABLE IF NOT EXISTS `OSI_1.04`.`discounts` (
   `min_age` INT NOT NULL,
   `max_age` INT NOT NULL,
   `coefficient` DECIMAL(4,2) NOT NULL,
-  `deletede` TINYINT NULL,
+  `deleted` TINYINT NULL,
   PRIMARY KEY (`iddiscounts`),
   UNIQUE INDEX `iddiscounts_UNIQUE` (`iddiscounts` ASC) )
 ENGINE = InnoDB;

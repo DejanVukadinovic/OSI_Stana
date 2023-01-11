@@ -13,6 +13,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
+  pdfprocessor:
+    image: pspdfkit/processor
+    ports:
+      - 5000:5000
+    expose:
+      - 5000
   api:
     build: ./api
     ports:
@@ -47,6 +53,8 @@ services:
       - "3003:3000"
     depends_on:
       - database
+    volumes:
+      - ./ticketRecords:/usr/src/app/tickets
     restart: always
     environment:
       DB_HOST: ${DB_HOST}
