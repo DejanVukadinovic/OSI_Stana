@@ -141,6 +141,49 @@ crow::json::wvalue set_route_driver(const int iddriver, const int idroute)
     }
 }
 
+crow::json::wvalue delete_route(const int idroute) 
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
+
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+		stmt = con->prepareStatement("INSERT INTO route(idroute,active) VALUES(?,?)");
+		stmt->setInt(1, idroute);
+		stmt->setInt(2, 0);
+		res=stmt->executeQuery();
+
+		std::string message="Route deleted!";
+        result["Message"]=message;
+		
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+
+	}
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
+
 int main()
 {
 	crow::SimpleApp app;
@@ -184,6 +227,17 @@ int main()
 			const std::string idroute_s = req.get_header_value("idroute");
 			const int route_a=std::stoi(idroute_s);
 			crow::json::wvalue result = set_route_driver(driver_a,route_a);
+			return result;
+			
+		});
+		CROW_ROUTE(app, "/delete-route")([](const crow::request& req)
+		{
+			std::string body = req.body;
+			std::cout<<body<<std::endl;
+			std::string first = body.substr(body.find("\n")+1, body.find(";"));
+			const std::string idroute_s = req.get_header_value("idroute");
+			const int route_a=std::stoi(idroute_s);
+			crow::json::wvalue result = delete_route(route_a);
 			return result;
 			
 		});
