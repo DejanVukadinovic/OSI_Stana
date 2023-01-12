@@ -1,0 +1,15 @@
+{
+    "req":
+    {
+        "username":"Lala"
+    },
+    "res":
+    {
+        "Message": "Account deleted"
+    },
+    "header":
+    {
+        "path":"/delete",
+        "method":"PUT"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "req":
+    {
+        "username":"Maja12345"
+    },
+    "res":
+    {
+        "Message": "Account suspended",
+        "Message":"Error: User does not have authorization."
+    },
+    "header":
+    {
+        "path":"/suspension",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
+        "method":"PUT"
+    }
+}

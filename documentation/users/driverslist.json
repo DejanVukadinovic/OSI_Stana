@@ -1,0 +1,21 @@
+{
+    "req":
+    {},
+    "res":
+    {
+        "1": {
+            "name": "Driver",
+            "suspended": "False",
+            "deleted": "False",
+            "username": "driver"
+        },
+        "Message":"Error: User does not have authorization."
+
+    },
+    "header":
+    {
+        "path":"/list/drivers",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
+        "method":"GET"
+    }
+}

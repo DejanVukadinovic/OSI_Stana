@@ -1,0 +1,16 @@
+{
+    "req":
+    {
+        "username":"Maja12345",
+        "new_name":"Marija"
+    },
+    "res":
+    {
+        "Message": "Name changed"
+    },
+    "header":
+    {
+        "path":"/edit_profile",
+        "method":"PUT"
+    }
+}

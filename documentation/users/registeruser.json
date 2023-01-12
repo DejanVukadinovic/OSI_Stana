@@ -1,0 +1,19 @@
+{
+    "req":
+    {
+        "username":"Maja12345",
+        "password":"maja123",
+        "name":"Maja",
+        "user_type":"Passenger"
+    },
+    "res":
+    {
+        "Message": "Status: true",
+        "Message": "Error: Username already exists"
+    },
+    "header":
+    {
+        "path":"/register",
+        "method":"POST"
+    }
+}
