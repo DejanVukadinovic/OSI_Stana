@@ -115,7 +115,7 @@ crow::json::wvalue set_route_driver(const int idroute, const int iddriver)
         std::cout<<"Connected"<<std::endl;
         con->setSchema(getenv("DB_NAME"));
 
-        stmt = con->prepareStatement("INSERT INTO route_has_driver (idroute, iddriver) VALUES (?, ?)");
+        stmt = con->prepareStatement("INSERT INTO route_has_driver (idroute,iddriver) VALUES (?,?)");
         stmt->setInt(1, idroute);
         stmt->setInt(2, iddriver);
         res=stmt->executeQuery();
