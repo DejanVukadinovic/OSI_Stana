@@ -227,6 +227,49 @@ crow::json::wvalue delete_busclass(const int idbus_class)
 	}		
 }
 
+crow::json::wvalue delete_discount(const int iddiscounts) 
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
+
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+		stmt = con->prepareStatement("UPDATE discounts SET deleted=? WHERE discounts.iddiscounts=?");
+		stmt->setInt(1, 1);
+		stmt->setInt(2, iddiscounts);
+		res=stmt->executeQuery();
+
+		std::string message="Discount deleted!";
+        result["Message"]=message;
+		
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+
+	}
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
+
 int main()
 {
 	crow::SimpleApp app;
@@ -277,6 +320,14 @@ int main()
 			const std::string idbus_class_s = req.get_header_value("idbus_class");
 			const int idbusclass=std::stoi(idbus_class_s);
 			crow::json::wvalue result = delete_busclass(idbusclass);
+			return result;
+			
+		});
+		CROW_ROUTE(app, "/discounts/delete")([](const crow::request& req)
+		{
+			const std::string iddiscounts_s = req.get_header_value("iddiscounts");
+			const int discounts_a=std::stoi(iddiscounts_s);
+			crow::json::wvalue result = delete_discount(discounts_a);
 			return result;
 			
 		});
