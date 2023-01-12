@@ -1,0 +1,12 @@
+{
+    "req":{},
+    "res":
+    {
+       //primjer ispisa jednog usera
+    },
+    "header":
+    {
+        "token":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
+        "method":"GET"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "req":{},
+    "res":
+    {
+       //primjer ispisa jednog usera
+    },
+    "header":
+    {
+        "username":"admin",
+        "name":"Admin",
+        "method":"PUT"
+    }
+}

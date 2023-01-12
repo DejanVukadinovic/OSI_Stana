@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <boost/algorithm/string.hpp>
 #include "crow.h"
 #include "mysql_connection.h"
 #include <cppconn/driver.h>
@@ -14,13 +15,21 @@
 #include "jwt/jwt.hpp"
 #include "string"
 
-crow::json::wvalue list_users()
+
+std::string jwt_return_username(const std::string& token){
+	std::string jwt_key = getenv("JWT_KEY");
+    auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
+    return dec_obj.payload().get_claim_value<std::string>("user");
+
+}
+
+crow::json::wvalue list_users(const std::string authorization)
 {
 	try
 	{
 		sql::Driver* driver;
 		sql::Connection* con;
-		sql::Statement* stmt;
+		sql::PreparedStatement* stmt;
 		sql::ResultSet* res;
 		crow::json::wvalue result;
 
@@ -28,9 +37,16 @@ crow::json::wvalue list_users()
 		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
-
-		stmt = con->createStatement();
-		res = stmt->executeQuery("SELECT * FROM user");
+        
+		std::string user=jwt_return_username(authorization);
+		stmt = con->prepareStatement("SELECT * FROM user where username=  ?");
+		stmt->setString(1, user);
+		res = stmt->executeQuery();
+		res->next();
+        if(res->getInt("user_type")==0)
+		{
+		stmt = con->prepareStatement("SELECT * FROM user");
+		res = stmt->executeQuery();
 		while (res->next()) {
 			crow::json::wvalue::object tmp;
 			tmp["username"] = res->getString("username");
@@ -39,6 +55,12 @@ crow::json::wvalue list_users()
 			tmp["user type"]=res->getInt("user_type")?(res->getInt("user_type")==1?"Driver":"Passenger"):"Admin";
 			
 			result[res->getString("iduser")] = tmp;
+		}
+		}
+		else
+		{
+			std::string message="Error: User does not have authorization.";
+		    result["Message"]=message;
 		}
 
 		delete res;
@@ -60,7 +82,7 @@ crow::json::wvalue list_users()
 	}		
 }
 
-crow::json::wvalue list_drivers()
+crow::json::wvalue list_drivers(const std::string authorization)
 {
 	try
 	{
@@ -74,7 +96,14 @@ crow::json::wvalue list_drivers()
 		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
-
+        
+		std::string user=jwt_return_username(authorization);
+		stmt = con->prepareStatement("SELECT * FROM user where username=  ?");
+		stmt->setString(1, user);
+		res = stmt->executeQuery();
+		res->next();
+        if(res->getInt("user_type")==0)
+		{
 		stmt = con->prepareStatement("SELECT * FROM user where user_type=  ?");
 		stmt->setInt(1, 1);
 		res = stmt->executeQuery();
@@ -95,7 +124,12 @@ crow::json::wvalue list_drivers()
 			
 			result[pom->getString("iddriver")] = tmp;
 		}
-
+		}
+		else
+		{
+			std::string message="Error: User does not have authorization.";
+		    result["Message"]=message;
+		}
 		delete res;
 		delete stmt;
 		delete con;
@@ -115,7 +149,7 @@ crow::json::wvalue list_drivers()
 	}		
 }
 
-crow::json::wvalue list_passengers()
+crow::json::wvalue list_passengers(const std::string authorization)
 {
 	try
 	{
@@ -130,6 +164,13 @@ crow::json::wvalue list_passengers()
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
 
+		std::string user=jwt_return_username(authorization);
+		stmt = con->prepareStatement("SELECT * FROM user where username=  ?");
+		stmt->setString(1, user);
+		res = stmt->executeQuery();
+		res->next();
+        if(res->getInt("user_type")==0)
+		{
 		stmt = con->prepareStatement("SELECT * FROM user where user_type=  ?");
 		stmt->setInt(1, 2);
 		res = stmt->executeQuery();
@@ -149,6 +190,12 @@ crow::json::wvalue list_passengers()
 			
 			
 			result[pom->getString("idpassenger")] = tmp;
+		}
+		}
+		else
+		{
+			std::string message="Error: User does not have authorization.";
+		    result["Message"]=message;
 		}
 
 		delete res;
@@ -170,7 +217,141 @@ crow::json::wvalue list_passengers()
 	}		
 }
 
+// crow::json::wvalue driver_details(const std::string username,const std::string authorization)
+// {
+// 	try
+// 	{
+// 		sql::Driver* driver;
+// 		sql::Connection* con;
+// 		sql::PreparedStatement* stmt;
+// 		sql::ResultSet* res;
+// 		crow::json::wvalue result;
 
+// 		driver = get_driver_instance();
+// 		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+// 		std::cout<<"Connected"<<std::endl;
+// 		con->setSchema(getenv("DB_NAME"));
+        
+// 		std::string user=jwt_return_username(authorization);
+// 		stmt = con->prepareStatement("SELECT * FROM user WHERE username=  ?");
+// 		stmt->setString(1, user);
+// 		res = stmt->executeQuery();
+// 		res->next();
+		
+//         if(res->getInt("user_type")==0)
+// 		{
+// 		stmt = con->prepareStatement("SELECT * FROM user WHERE username= ? ");
+// 		stmt->setString(1, username);
+// 		res = stmt->executeQuery();
+// 		sql::ResultSet* pom;
+// 		int id;
+// 		while (res->next()) {
+// 			id=res->getInt("iduser");
+// 			stmt = con->prepareStatement("SELECT * FROM driver where iduser= ?");
+// 		    stmt->setInt(1, id);
+// 		    pom = stmt->executeQuery();
+// 			pom->next();
+// 			crow::json::wvalue::object tmp;
+// 			tmp["username"] = res->getString("username");
+// 			tmp["deleted"] = res->getInt("deleted")?"True":"False";
+// 			tmp["suspended"] = pom->getInt("suspended")?"True":"False";
+// 			tmp["name"] = res->getString("name");
+			
+// 			result[pom->getString("iddriver")] = tmp;
+// 		}
+// 		}
+// 		else
+// 		{
+// 			std::string message="Error: User does not have authorization.";
+// 		    result["Message"]=message;
+// 		}
+
+// 		delete res;
+// 		delete stmt;
+// 		delete con;
+// 		return result;
+
+// 	}
+// 	catch (sql::SQLException& e)										
+// 	{																					
+// 		std::cout << "# ERR: SQLException in " << __FILE__;								
+// 		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+// 		std::cout << "# ERR: " << e.what();												
+// 		std::cout << " (MySQL error code: " << e.getErrorCode();						
+// 		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+// 		crow::json::wvalue ret;															
+// 		ret["ERROR:"] = e.what();															
+// 		return  ret;																
+// 	}		
+// }
+
+// crow::json::wvalue passenger_details(const std::string username,const std::string authorization)
+// {
+// 	try
+// 	{
+// 		sql::Driver* driver;
+// 		sql::Connection* con;
+// 		sql::PreparedStatement* stmt;
+// 		sql::ResultSet* res;
+// 		crow::json::wvalue result;
+
+// 		driver = get_driver_instance();
+// 		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+// 		std::cout<<"Connected"<<std::endl;
+// 		con->setSchema(getenv("DB_NAME"));
+        
+// 		std::string user=jwt_return_username(authorization);
+// 		stmt = con->prepareStatement("SELECT * FROM user WHERE username=  ?");
+// 		stmt->setString(1, user);
+// 		res = stmt->executeQuery();
+// 		res->next();
+		
+//         if(res->getInt("user_type")==0)
+// 		{
+// 		stmt = con->prepareStatement("SELECT * FROM user WHERE username= ? ");
+// 		stmt->setString(1, username);
+// 		res = stmt->executeQuery();
+// 		sql::ResultSet* pom;
+// 		int id;
+// 		while (res->next()) {
+// 			id=res->getInt("iduser");
+// 			stmt = con->prepareStatement("SELECT * FROM passenger where iduser= ?");
+// 		    stmt->setInt(1, id);
+// 		    pom = stmt->executeQuery();
+// 			pom->next();
+// 			crow::json::wvalue::object tmp;
+// 			tmp["username"] = res->getString("username");
+// 			tmp["deleted"] = res->getInt("deleted")?"True":"False";
+// 			tmp["suspended"] = pom->getInt("suspended")?"True":"False";
+// 			tmp["name"] = res->getString("name");
+			
+// 			result[pom->getString("idpassenger")] = tmp;
+// 		}
+// 		}
+// 		else
+// 		{
+// 			std::string message="Error: User does not have authorization.";
+// 		    result["Message"]=message;
+// 		}
+
+// 		delete res;
+// 		delete stmt;
+// 		delete con;
+// 		return result;
+
+// 	}
+// 	catch (sql::SQLException& e)										
+// 	{																					
+// 		std::cout << "# ERR: SQLException in " << __FILE__;								
+// 		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+// 		std::cout << "# ERR: " << e.what();												
+// 		std::cout << " (MySQL error code: " << e.getErrorCode();						
+// 		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+// 		crow::json::wvalue ret;															
+// 		ret["ERROR:"] = e.what();															
+// 		return  ret;																
+// 	}		
+// }
 
 crow::json::wvalue login_user(const std::string username, const std::string password)
 {
@@ -370,7 +551,7 @@ crow::json::wvalue edit_profile(const std::string username,const std::string new
 	}		
 }
 
-crow::json::wvalue suspension(const std::string username)
+crow::json::wvalue suspension(const std::string username,const std::string authorization)
 {
 	try
 	{
@@ -385,6 +566,13 @@ crow::json::wvalue suspension(const std::string username)
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
 
+        std::string user=jwt_return_username(authorization);
+		stmt = con->prepareStatement("SELECT * FROM user where username=  ?");
+		stmt->setString(1, user);
+		res = stmt->executeQuery();
+		res->next();
+        if(res->getInt("user_type")==0)
+		{
 		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
 		stmt->setString(1, username);
 		res=stmt->executeQuery();
@@ -410,8 +598,14 @@ crow::json::wvalue suspension(const std::string username)
 		}
 		else
 		{
-		std::string message="Unable to suspend account";
+		std::string message="Error: Unable to suspend account";
 		result["Message"]=message;	
+		}
+		}
+		else
+		{
+			std::string message="Error: User does not have authorization.";
+		    result["Message"]=message;
 		}
 		delete res;
 		delete stmt;
@@ -431,7 +625,7 @@ crow::json::wvalue suspension(const std::string username)
 		return  ret;																
 	}		
 }
-crow::json::wvalue activation(const std::string username)
+crow::json::wvalue activation(const std::string username,const std::string authorization)
 {
 	try
 	{
@@ -446,6 +640,13 @@ crow::json::wvalue activation(const std::string username)
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
 
+		std::string user=jwt_return_username(authorization);
+		stmt = con->prepareStatement("SELECT * FROM user where username=  ?");
+		stmt->setString(1, user);
+		res = stmt->executeQuery();
+		res->next();
+        if(res->getInt("user_type")==0)
+		{
 		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
 		stmt->setString(1, username);
 		res=stmt->executeQuery();
@@ -471,8 +672,14 @@ crow::json::wvalue activation(const std::string username)
 		}
 		else
 		{
-		std::string message="Unable to activate account.";
+		std::string message="Error: Unable to activate account.";
 		result["Message"]=message;	
+		}
+		}
+		else
+		{
+            std::string message="Error: User does not have authorization.";
+		    result["Message"]=message;
 		}
 		delete res;
 		delete stmt;
@@ -514,7 +721,7 @@ crow::json::wvalue delete_user(const std::string username)
 		res->next();
 		if (res->getInt("user_type")==1)
 		{
-		std::string message="Account can not be deleted";
+		std::string message="Error: Account can not be deleted";
 		result["Message"]=message;
 		}
 		else
@@ -570,7 +777,7 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 		    result["Message"]=message;
         }
         else{
-            message="New password and old password are the same!";
+            message="Error: New password and old password are the same.";
             result["Message"]=message;
             }
 
@@ -594,40 +801,26 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 	}		
 }
 
-std::string jwt_return_username(const std::string& token){
-	std::string jwt_key = getenv("JWT_KEY");
-    auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
-    return dec_obj.payload().get_claim_value<std::string>("username");
-
-}
 
 int main()
 {
 	crow::SimpleApp app;
-	CROW_ROUTE(app, "/")([]()
+	CROW_ROUTE(app, "/list").methods(crow::HTTPMethod::GET)([](const crow::request& req)
 		{
-			return "Hello world!!";
+			const std::string authorization = req.get_header_value("authorization");
+			std::vector<std::string> split;
+            boost::split(split,authorization,boost::is_any_of(" "));
+			return list_users(split[1]);
 		});
-	CROW_ROUTE(app, "/list")([]()
+	CROW_ROUTE(app, "/login").methods(crow::HTTPMethod::GET)([](const crow::request& req)
 		{
-			crow::json::wvalue res = list_users();
-			return list_users();
-		});
-	CROW_ROUTE(app, "/login")([](const crow::request& req)
-		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
 			const std::string password = req.get_header_value("password");
 			crow::json::wvalue result = login_user(username, password);
 			return result;
 		});
-		CROW_ROUTE(app, "/register")([](const crow::request& req)
+		CROW_ROUTE(app, "/register").methods(crow::HTTPMethod::POST)([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
 			const std::string password = req.get_header_value("password");
 			const std::string name = req.get_header_value("name");
@@ -635,63 +828,78 @@ int main()
 			crow::json::wvalue result = register_user(username, password,name,user_type);
 			return result;
 		});
-		CROW_ROUTE(app, "/edit_profile")([](const crow::request& req)
+		CROW_ROUTE(app, "/edit_profile").methods(crow::HTTPMethod::PUT)([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
 			const std::string name = req.get_header_value("name");
 			crow::json::wvalue result = edit_profile(username,name);
 			return result;
 		});
-		CROW_ROUTE(app, "/suspension")([](const crow::request& req)
+		CROW_ROUTE(app, "/suspension").methods(crow::HTTPMethod::PUT)([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
-			crow::json::wvalue result = suspension(username);
+			const std::string authorization = req.get_header_value("authorization");
+			std::vector<std::string> split;
+            boost::split(split,authorization,boost::is_any_of(" "));
+			crow::json::wvalue result = suspension(username,split[1]);
 			return result;
 		});
-		CROW_ROUTE(app, "/activation")([](const crow::request& req)
+		CROW_ROUTE(app, "/activation").methods(crow::HTTPMethod::PUT)([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
-			crow::json::wvalue result = activation(username);
+			const std::string authorization = req.get_header_value("authorization");
+			std::vector<std::string> split;
+            boost::split(split,authorization,boost::is_any_of(" "));
+			crow::json::wvalue result = activation(username,split[1]);
 			return result;
 		});
-		CROW_ROUTE(app, "/delete")([](const crow::request& req)
+		CROW_ROUTE(app, "/delete").methods(crow::HTTPMethod::PUT)([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
 			crow::json::wvalue result = delete_user(username);
 			return result;
 		});
 
-		CROW_ROUTE(app, "/password_change")([](const crow::request& req)
+		CROW_ROUTE(app, "/password_change").methods(crow::HTTPMethod::PUT)([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string username = req.get_header_value("username");
 			const std::string old_password = req.get_header_value("old_password");
-            	const std::string new_password = req.get_header_value("new_password");
+            const std::string new_password = req.get_header_value("new_password");
 			crow::json::wvalue result = password_change(username,new_password,old_password);
 			return result;
 		});
 
-		CROW_ROUTE(app, "/list_drivers")([]()
+		CROW_ROUTE(app, "/list_drivers").methods(crow::HTTPMethod::GET)([](const crow::request& req)
 		{
-			return list_drivers();
+			const std::string authorization = req.get_header_value("authorization");
+			std::vector<std::string> split;
+            boost::split(split,authorization,boost::is_any_of(" "));
+			return list_drivers(split[1]);
 		});
-		CROW_ROUTE(app, "/list_passengers")([]()
+		// CROW_ROUTE(app, "/driver_details").methods(crow::HTTPMethod::GET)([](const crow::request& req)
+		// {
+		// 	const std::string username = req.get_header_value("username");
+		// 	const std::string authorization = req.get_header_value("authorization");
+		// 	std::vector<std::string> split;
+        //     boost::split(split,authorization,boost::is_any_of(" "));
+		// 	crow::json::wvalue result = driver_details(username, split[1]);
+		// 	return result;
+		// });
+		// CROW_ROUTE(app, "/passenger_details").methods(crow::HTTPMethod::GET)([](const crow::request& req)
+		// {
+		// 	const std::string username = req.get_header_value("username");
+		// 	const std::string authorization = req.get_header_value("authorization");
+		// 	std::vector<std::string> split;
+        //     boost::split(split,authorization,boost::is_any_of(" "));
+		// 	crow::json::wvalue result = passenger_details(username, split[1]);
+		// 	return result;
+		// });
+		CROW_ROUTE(app, "/list_passengers").methods(crow::HTTPMethod::GET)([](const crow::request& req)
 		{
-			return list_passengers();
+			const std::string authorization = req.get_header_value("authorization");
+			std::vector<std::string> split;
+            boost::split(split,authorization,boost::is_any_of(" "));
+			return list_passengers(split[1]);
 		});
 
 

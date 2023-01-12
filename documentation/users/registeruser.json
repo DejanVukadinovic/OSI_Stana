@@ -1,0 +1,15 @@
+{
+    "req":{},
+    "res":
+    {
+       //primjer ispisa jednog usera
+    },
+    "header":
+    {
+        "username":"admin",
+        "password":"admin",
+        "name":"Admin",
+        "user_type":"Admin",
+        "method":"POST"
+    }
+}
