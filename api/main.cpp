@@ -100,7 +100,7 @@ crow::json::wvalue discount(const int min_age,const int max_age,const double coe
 	}		
 }
 
-crow::json::wvalue set_route_driver(const int iddriver, const int idroute)
+crow::json::wvalue set_route_driver(const int idroute, const int iddriver)
 {
     try
     {
@@ -115,9 +115,9 @@ crow::json::wvalue set_route_driver(const int iddriver, const int idroute)
         std::cout<<"Connected"<<std::endl;
         con->setSchema(getenv("DB_NAME"));
 
-        stmt = con->prepareStatement("INSERT INTO route_has_driver (iddriver, idroute) VALUES (?, ?)");
-        stmt->setInt(1, iddriver);
-        stmt->setInt(2, idroute);
+        stmt = con->prepareStatement("INSERT INTO route_has_driver (idroute, iddriver) VALUES (?, ?)");
+        stmt->setInt(1, idroute);
+        stmt->setInt(2, iddriver);
         res=stmt->executeQuery();
 
         std::string message="Route and driver set successfully";
@@ -156,9 +156,9 @@ crow::json::wvalue delete_route(const int idroute)
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
 
-		stmt = con->prepareStatement("INSERT INTO route(idroute,active) VALUES(?,?)");
-		stmt->setInt(1, idroute);
-		stmt->setInt(2, 0);
+		stmt = con->prepareStatement("UPDATE route SET active=? WHERE route.idroute=?");
+		stmt->setInt(1, 0);
+		stmt->setInt(2, idroute);
 		res=stmt->executeQuery();
 
 		std::string message="Route deleted!";
@@ -199,9 +199,9 @@ crow::json::wvalue delete_busclass(const int idbus_class)
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
 
-		stmt = con->prepareStatement("INSERT INTO bus_class(idbus_class,deleted) VALUES(?,?)");
-		stmt->setInt(1, idbus_class);
-		stmt->setInt(2, 1);
+		stmt = con->prepareStatement("UPDATE bus_class SET deleted=? WHERE bus_class.idbus_class=?");
+		stmt->setInt(1, 1);
+		stmt->setInt(2, idbus_class);
 		res=stmt->executeQuery();
 
 		std::string message="Bus class deleted!";
@@ -236,9 +236,6 @@ int main()
 		});
 	CROW_ROUTE(app, "/bus_class")([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string description = req.get_header_value("description");
 			const std::string price_coefficient_s = req.get_header_value("price_coefficient_s");
 			const double price_coefficient= std::stod(price_coefficient_s);
@@ -247,9 +244,6 @@ int main()
 		});
 	CROW_ROUTE(app, "/discount")([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string min_age_s = req.get_header_value("min_age");
 			const int min_age=std::stoi(min_age_s);
 			const std::string max_age_s = req.get_header_value("max_age");
@@ -260,35 +254,26 @@ int main()
 			return result;
 			
 		});
-		CROW_ROUTE(app, "/set-route-driver")([](const crow::request& req)
+		CROW_ROUTE(app, "/route/set_driver")([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
-			const std::string iddriver_s = req.get_header_value("iddriver");
-			const int driver_a=std::stoi(iddriver_s);
 			const std::string idroute_s = req.get_header_value("idroute");
 			const int route_a=std::stoi(idroute_s);
-			crow::json::wvalue result = set_route_driver(driver_a,route_a);
+			const std::string iddriver_s = req.get_header_value("iddriver");
+			const int driver_a=std::stoi(iddriver_s);
+			crow::json::wvalue result = set_route_driver(route_a,driver_a);
 			return result;
 			
 		});
-		CROW_ROUTE(app, "/delete-route")([](const crow::request& req)
+		CROW_ROUTE(app, "/route/delete")([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string idroute_s = req.get_header_value("idroute");
 			const int route_a=std::stoi(idroute_s);
 			crow::json::wvalue result = delete_route(route_a);
 			return result;
 			
 		});
-		CROW_ROUTE(app, "/delete-bus-class")([](const crow::request& req)
+		CROW_ROUTE(app, "/busclass/delete")([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
 			const std::string idbus_class_s = req.get_header_value("idbus_class");
 			const int idbusclass=std::stoi(idbus_class_s);
 			crow::json::wvalue result = delete_busclass(idbusclass);
