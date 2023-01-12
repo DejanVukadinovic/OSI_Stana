@@ -847,7 +847,7 @@ int main()
 	CROW_ROUTE(app, "/list").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
-			const std::string authorization = params.get("authorization");
+			const std::string authorization = req.get_header_value("authorization");
 			std::vector<std::string> split;
             boost::split(split,authorization,boost::is_any_of(" "));
 			crow::json::wvalue result= list_users(split[1]);
@@ -859,7 +859,7 @@ int main()
 		{
 			crow::query_string params = req.url_params;
 			const std::string username = params.get("username");
-			const std::string password = params.get("username");
+			const std::string password = params.get("password");
 			crow::json::wvalue result = login_user(username, password);
 			crow::response resp(result);
 			resp.add_header("Access-Control-Allow-Origin", "*");
@@ -891,7 +891,7 @@ int main()
 		{
 			crow::query_string params = req.url_params;
 			const std::string username = params.get("username");
-			const std::string authorization = params.get("authorization");
+			const std::string authorization = req.get_header_value("authorization");
 			std::vector<std::string> split;
             boost::split(split,authorization,boost::is_any_of(" "));
 			crow::json::wvalue result = suspension(username,split[1]);
@@ -903,7 +903,7 @@ int main()
 		{
 			crow::query_string params = req.url_params;
 			const std::string username = params.get("username");
-			const std::string authorization = params.get("authorization");
+			const std::string authorization = req.get_header_value("authorization");
 			std::vector<std::string> split;
             boost::split(split,authorization,boost::is_any_of(" "));
 			crow::json::wvalue result = activation(username,split[1]);
@@ -936,7 +936,7 @@ int main()
 		CROW_ROUTE(app, "/list_drivers").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
-			const std::string authorization = params.get("authorization");
+			const std::string authorization = req.get_header_value("authorization");
 			std::vector<std::string> split;
             boost::split(split,authorization,boost::is_any_of(" "));
 			crow::json::wvalue result= list_drivers(split[1]);
@@ -948,7 +948,7 @@ int main()
 		{
 			crow::query_string params = req.url_params;
 			const std::string username =params.get("username");
-			const std::string authorization = params.get("authorization");
+			const std::string authorization = req.get_header_value("authorization");
 			std::vector<std::string> split;
             boost::split(split,authorization,boost::is_any_of(" "));
 			crow::json::wvalue result = driver_details(username, split[1]);
@@ -960,7 +960,7 @@ int main()
 		{
 			crow::query_string params = req.url_params;
 			const std::string username =params.get("username");
-			const std::string authorization = params.get("authorization");
+			const std::string authorization = req.get_header_value("authorization");
 			std::vector<std::string> split;
             boost::split(split,authorization,boost::is_any_of(" "));
 			crow::json::wvalue result = passenger_details(username, split[1]);
@@ -971,7 +971,7 @@ int main()
 		CROW_ROUTE(app, "/list_passengers").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
-			const std::string authorization = params.get("authorization");
+			const std::string authorization = req.get_header_value("authorization");
 			std::vector<std::string> split;
             boost::split(split,authorization,boost::is_any_of(" "));
 			crow::json::wvalue result= list_passengers(split[1]);
