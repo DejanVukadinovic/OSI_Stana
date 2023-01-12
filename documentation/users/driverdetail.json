@@ -16,7 +16,7 @@
     },
     "header":
     {
-        "authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
         "method":"GET"
     }
 }

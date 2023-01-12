@@ -9,6 +9,7 @@
     },
     "header":
     {
+        "path":"/delete",
         "method":"PUT"
     }
 }

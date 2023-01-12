@@ -937,7 +937,7 @@ int main()
 			return resp;
 		});
 
-		CROW_ROUTE(app, "/list_drivers").methods("GET"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/list/drivers").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string authorization = req.get_header_value("authorization");
@@ -948,7 +948,7 @@ int main()
 			resp.add_header("Access-Control-Allow-Origin", "*");
 			return resp;
 		});
-		CROW_ROUTE(app, "/driver_details").methods("GET"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/driver/details").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string username =params.get("username");
@@ -960,7 +960,7 @@ int main()
 			resp.add_header("Access-Control-Allow-Origin", "*");
 			return resp;
 		});
-		CROW_ROUTE(app, "/passenger_details").methods("GET"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/passenger/details").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string username =params.get("username");
@@ -972,7 +972,7 @@ int main()
 			resp.add_header("Access-Control-Allow-Origin", "*");
 			return resp;
 		});
-		CROW_ROUTE(app, "/list_passengers").methods("GET"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/list/passengers").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string authorization = req.get_header_value("authorization");
