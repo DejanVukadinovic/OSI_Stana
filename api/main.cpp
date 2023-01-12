@@ -438,7 +438,7 @@ int main()
 			return resp;
 			
 		});
-		CROW_ROUTE(app, "/discount").methods("PUT"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/discounts/edit").methods("PUT"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string iddiscounts_s = params.get("iddiscounts");
