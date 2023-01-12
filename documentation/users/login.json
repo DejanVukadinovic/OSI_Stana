@@ -1,0 +1,25 @@
+{
+    "req":
+    {
+        "username":"admin",
+        "password":"admin"
+    },
+    "res":
+    {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
+        "login": true,
+        "user type": "Admin",
+        
+        "password_change": "false",
+        "password_change": "true",
+        "Error":"The number of logins exceeds the limit.",
+        
+        "name": "Admin",
+        "username": "admin"
+    },
+    "header":
+    {
+        "path":"/login",
+        "method":"GET"
+    }
+}
