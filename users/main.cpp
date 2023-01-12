@@ -407,6 +407,10 @@ crow::json::wvalue login_user(const std::string username, const std::string pass
 			{
 			result["password_change"] = "true";
 			}
+			else if(res->getInt("login_num")>params::login_limit)
+			{
+			result["Error"]="The number of logins exceeds the limit.";
+			}
 			else
 			{
             result["password_change"] = "false";

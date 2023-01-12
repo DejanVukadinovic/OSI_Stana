@@ -1,8 +1,7 @@
 {
     "req":
     {
-        "username":"Maja12345",
-        "token":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM"
+        "username":"Maja12345"
     },
     "res":
     {
@@ -11,6 +10,7 @@
     },
     "header":
     {
+        "authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
         "method":"PUT"
     }
 }
