@@ -16,12 +16,12 @@
 #include "string"
 
 
-std::string jwt_return_username(const std::string& token){
-	std::string jwt_key = getenv("JWT_KEY");
-    auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
-    return dec_obj.payload().get_claim_value<std::string>("user");
+// std::string jwt_return_username(const std::string& token){
+// 	std::string jwt_key = getenv("JWT_KEY");
+//     auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
+//     return dec_obj.payload().get_claim_value<std::string>("user");
 
-}
+// }
 
 crow::json::wvalue list_users(const std::string authorization)
 {
@@ -801,6 +801,13 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 	}		
 }
 
+std::string jwt_return_username(const std::string& token){
+	std::string jwt_key = getenv("JWT_KEY");
+    auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
+    return dec_obj.payload().get_claim_value<std::string>("user");
+
+}
+
 
 int main()
 {
@@ -812,12 +819,15 @@ int main()
             boost::split(split,authorization,boost::is_any_of(" "));
 			return list_users(split[1]);
 		});
-	CROW_ROUTE(app, "/login").methods(crow::HTTPMethod::GET)([](const crow::request& req)
+	CROW_ROUTE(app, "/login").methods("GET"_method)([](const crow::request& req)
 		{
-			const std::string username = req.get_header_value("username");
-			const std::string password = req.get_header_value("password");
+			crow::query_string params = req.url_params;
+			const std::string username = params.get("username");
+			const std::string password = params.get("username");
 			crow::json::wvalue result = login_user(username, password);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 		});
 		CROW_ROUTE(app, "/register").methods(crow::HTTPMethod::POST)([](const crow::request& req)
 		{
