@@ -270,6 +270,95 @@ crow::json::wvalue delete_discount(const int iddiscounts)
 	}		
 }
 
+crow::json::wvalue edit_discount(const int iddiscounts,const double coefficient) 
+{
+	try
+	{
+		sql::Driver* driver;
+		sql::Connection* con;
+		sql::PreparedStatement* stmt;
+		sql::ResultSet* res;
+		crow::json::wvalue result;
+
+		driver = get_driver_instance();
+		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+		std::cout<<"Connected"<<std::endl;
+		con->setSchema(getenv("DB_NAME"));
+
+		stmt = con->prepareStatement("UPDATE discounts SET coefficient=? WHERE discounts.iddiscounts=?");
+		stmt->setDouble(1,coefficient) ;
+		stmt->setInt(2,iddiscounts);
+		res=stmt->executeQuery();
+
+		std::string message="Discount changed";
+        result["Message"]=message;
+		
+		delete res;
+		delete stmt;
+		delete con;
+		return result;
+
+
+	}
+	catch (sql::SQLException& e)										
+	{																					
+		std::cout << "# ERR: SQLException in " << __FILE__;								
+		std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;		
+		std::cout << "# ERR: " << e.what();												
+		std::cout << " (MySQL error code: " << e.getErrorCode();						
+		std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;			
+		crow::json::wvalue ret;															
+		ret["ERROR:"] = e.what();															
+		return  ret;																
+	}		
+}
+
+crow::json::wvalue bus_details(const int idbus) {
+    try {
+        sql::Driver* driver;
+        sql::Connection* con;
+        sql::PreparedStatement* stmt;
+        sql::ResultSet* res;
+        crow::json::wvalue result;
+
+        driver = get_driver_instance();
+        con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+        std::cout<<"Connected"<<std::endl;
+        con->setSchema(getenv("DB_NAME"));
+
+        stmt = con->prepareStatement("SELECT seats, is_working, carrier, idbus_class FROM bus WHERE idbus = ?");
+        stmt->setInt(1, idbus);
+        res = stmt->executeQuery();
+
+        if (res->next()) {
+            result["seats"] = res->getInt("seats");
+            result["is_working"] = res->getInt("is_working");
+            result["carrier"] = res->getString("carrier");
+            result["idbus_class"] = res->getInt("idbus_class");
+        }
+        else {
+            std::string message="Error: No bus found with that id.";
+            return result["Message"]=message;
+        }
+
+        delete res;
+        delete stmt;
+        delete con;
+        return result;
+    }
+    catch (sql::SQLException& e) 
+    {
+        std::cout << "# ERR: SQLException in " << __FILE__;
+        std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;
+        std::cout << "# ERR: " << e.what();
+        std::cout << " (MySQL error code: " << e.getErrorCode();
+        std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
+        crow::json::wvalue ret;
+        ret["ERROR:"] = e.what();
+        return ret;
+    }
+}
+
 int main()
 {
 	crow::SimpleApp app;
@@ -277,58 +366,100 @@ int main()
 		{
 			return "Hello world!!";
 		});
-	CROW_ROUTE(app, "/bus_class")([](const crow::request& req)
+	CROW_ROUTE(app, "/bus_class").methods("POST"_method)([](const crow::request& req)
 		{
-			const std::string description = req.get_header_value("description");
-			const std::string price_coefficient_s = req.get_header_value("price_coefficient_s");
+			crow::query_string params = req.url_params;
+			const std::string description = params.get("description");
+			const std::string price_coefficient_s = params.get("price_coefficient_s");
 			const double price_coefficient= std::stod(price_coefficient_s);
 			crow::json::wvalue result = bus_class(description,price_coefficient);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 		});
-	CROW_ROUTE(app, "/discount")([](const crow::request& req)
+	CROW_ROUTE(app, "/discount").methods("POST"_method)([](const crow::request& req)
 		{
-			const std::string min_age_s = req.get_header_value("min_age");
+			crow::query_string params = req.url_params;
+			const std::string min_age_s = params.get("min_age");
 			const int min_age=std::stoi(min_age_s);
-			const std::string max_age_s = req.get_header_value("max_age");
+			const std::string max_age_s = params.get("max_age");
 			const int max_age=std::stoi(max_age_s);
-			const std::string coefficient_s = req.get_header_value("coefficient");
+			const std::string coefficient_s = params.get("coefficient");
 			const double coefficient= std::stod(coefficient_s);
 			crow::json::wvalue result = discount(min_age,max_age,coefficient);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 			
 		});
-		CROW_ROUTE(app, "/route/set_driver")([](const crow::request& req)
+		CROW_ROUTE(app, "/route/set_driver").methods("POST"_method)([](const crow::request& req)
 		{
-			const std::string idroute_s = req.get_header_value("idroute");
+			crow::query_string params = req.url_params;
+			const std::string idroute_s = params.get("idroute");
 			const int route_a=std::stoi(idroute_s);
-			const std::string iddriver_s = req.get_header_value("iddriver");
+			const std::string iddriver_s = params.get("iddriver");
 			const int driver_a=std::stoi(iddriver_s);
 			crow::json::wvalue result = set_route_driver(route_a,driver_a);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 			
 		});
-		CROW_ROUTE(app, "/route/delete")([](const crow::request& req)
+		CROW_ROUTE(app, "/route/delete").methods("PUT"_method)([](const crow::request& req)
 		{
-			const std::string idroute_s = req.get_header_value("idroute");
+			crow::query_string params = req.url_params;
+			const std::string idroute_s = params.get("idroute");
 			const int route_a=std::stoi(idroute_s);
 			crow::json::wvalue result = delete_route(route_a);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 			
 		});
-		CROW_ROUTE(app, "/busclass/delete")([](const crow::request& req)
+		CROW_ROUTE(app, "/busclass/delete").methods("PUT"_method)([](const crow::request& req)
 		{
-			const std::string idbus_class_s = req.get_header_value("idbus_class");
+			crow::query_string params = req.url_params;
+			const std::string idbus_class_s = params.get("idbus_class");
 			const int idbusclass=std::stoi(idbus_class_s);
 			crow::json::wvalue result = delete_busclass(idbusclass);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 			
 		});
-		CROW_ROUTE(app, "/discounts/delete")([](const crow::request& req)
+		CROW_ROUTE(app, "/discounts/delete").methods("PUT"_method)([](const crow::request& req)
 		{
-			const std::string iddiscounts_s = req.get_header_value("iddiscounts");
+			crow::query_string params = req.url_params;
+			const std::string iddiscounts_s = params.get("iddiscounts");
 			const int discounts_a=std::stoi(iddiscounts_s);
 			crow::json::wvalue result = delete_discount(discounts_a);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
+			
+		});
+		CROW_ROUTE(app, "/discount").methods("PUT"_method)([](const crow::request& req)
+		{
+			crow::query_string params = req.url_params;
+			const std::string iddiscounts_s = params.get("iddiscounts");
+			const int discounts_a=std::stoi(iddiscounts_s);
+			const std::string coefficient_s = params.get("coefficient");
+			const double coefficient= std::stod(coefficient_s);
+			crow::json::wvalue result = edit_discount(discounts_a,coefficient);
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
+			
+		});
+		CROW_ROUTE(app, "/bus/details").methods("GET"_method)([](const crow::request& req)
+		{
+			crow::query_string params = req.url_params;
+			const std::string idbus_s = params.get("idbus");
+			const int idbus_a=std::stoi(idbus_s);
+			crow::json::wvalue result = bus_details(idbus_a);
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 			
 		});
 	std::cout<<"Running on: http://120.0.0.1:3001"<<std::endl;
