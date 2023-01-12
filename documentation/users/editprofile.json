@@ -6,7 +6,8 @@
     },
     "res":
     {
-        "Message": "Name changed"
+        "Message": "Name changed",
+        "Error":"User with this username does not exist."
     },
     "header":
     {
