@@ -93,4 +93,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME} 
       JWT_KEY: ${JWT_KEY}
+  frontend:
+    build: ./frontend
+    ports:
+      - 3000:3000
+      
 
