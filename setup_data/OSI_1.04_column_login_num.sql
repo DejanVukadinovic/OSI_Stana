@@ -1,0 +1,2 @@
+ALTER TABLE `OSI_1.04`.user
+ADD COLUMN login_num INT NOT NULL AFTER password;

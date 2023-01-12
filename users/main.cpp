@@ -52,7 +52,7 @@ crow::json::wvalue list_users(const std::string authorization)
 			tmp["username"] = res->getString("username");
 			tmp["deleted"] = res->getInt("deleted")?"True":"False";
 			tmp["name"] = res->getString("name");
-			tmp["user type"]=res->getInt("user_type")?(res->getInt("user_type")==1?"Driver":"Passenger"):"Admin";
+			tmp["user_type"]=res->getInt("user_type")?(res->getInt("user_type")==1?"Driver":"Passenger"):"Admin";
 			
 			result[res->getString("iduser")] = tmp;
 		}
