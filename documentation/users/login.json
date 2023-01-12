@@ -1,13 +1,20 @@
 {
-    "req":{},
+    "req":
+    {
+        "username":"admin",
+        "password":"admin"
+    },
     "res":
     {
-       //primjer ispisa jednog usera
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
+        "login": true,
+        "user type": "Admin",
+        "password_change": "false",
+        "name": "Admin",
+        "username": "admin"
     },
     "header":
     {
-        "username":"admin",
-        "password":"admin",
         "method":"GET"
     }
 }

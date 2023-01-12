@@ -1,13 +1,15 @@
 {
-    "req":{},
+    "req":
+    {
+        "username":"Maja12345",
+        "new_name":"Marija"
+    },
     "res":
     {
-       //primjer ispisa jednog usera
+        "Message": "Name changed"
     },
     "header":
     {
-        "username":"admin",
-        "name":"Admin",
         "method":"PUT"
     }
 }

@@ -1,13 +1,16 @@
 {
-    "req":{},
+    "req":
+    {
+        "username":"Maja12345",
+        "token":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM"
+    },
     "res":
     {
-       //primjer ispisa jednog usera
+        "Message": "Account suspended",
+        "Message":"Error: User does not have authorization."
     },
     "header":
     {
-        "username":"admin",
-        "token":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
         "method":"PUT"
     }
 }

@@ -1,13 +1,22 @@
 {
-    "req":{},
+    "req":
+    {
+        "username":"driver",
+        "token":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM"
+    },
     "res":
     {
-       //primjer ispisa jednog usera
+        "1": {
+            "name": "Passenger",
+            "suspended": "False",
+            "deleted": "False",
+            "username": "passenger"
+        },
+        "Message": "Error: Passenger with this username does not exist.",
+        "Message":"Error: User does not have authorization."
     },
     "header":
     {
-        "username":"passenger",
-        "token":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
         "method":"GET"
     }
 }

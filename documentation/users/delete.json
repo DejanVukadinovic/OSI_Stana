@@ -1,12 +1,14 @@
 {
-    "req":{},
+    "req":
+    {
+        "username":"Lala"
+    },
     "res":
     {
-       //primjer ispisa jednog usera
+        "Message": "Account deleted"
     },
     "header":
     {
-        "username":"admin",
         "method":"PUT"
     }
 }
