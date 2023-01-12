@@ -597,7 +597,7 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 std::string jwt_return_username(const std::string& token){
 	std::string jwt_key = getenv("JWT_KEY");
     auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
-    return dec_obj.payload().get_claim_value<std::string>("username");
+    return dec_obj.payload().get_claim_value<std::string>("user");
 
 }
 
@@ -613,15 +613,15 @@ int main()
 			crow::json::wvalue res = list_users();
 			return list_users();
 		});
-	CROW_ROUTE(app, "/login")([](const crow::request& req)
+	CROW_ROUTE(app, "/login").methods("GET"_method)([](const crow::request& req)
 		{
-			std::string body = req.body;
-			std::cout<<body<<std::endl;
-			std::string first = body.substr(body.find("\n")+1, body.find(";"));
-			const std::string username = req.get_header_value("username");
-			const std::string password = req.get_header_value("password");
+			crow::query_string params = req.url_params;
+			const std::string username = params.get("username");
+			const std::string password = params.get("username");
 			crow::json::wvalue result = login_user(username, password);
-			return result;
+			crow::response resp(result);
+			resp.add_header("Access-Control-Allow-Origin", "*");
+			return resp;
 		});
 		CROW_ROUTE(app, "/register")([](const crow::request& req)
 		{
