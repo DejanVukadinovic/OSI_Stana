@@ -11,8 +11,6 @@ const Mustache = require('mustache');
 const bodyParser = require('body-parser')
 const cors = require("cors")
 var crypto = require('crypto');
-const e = require("express");
-
 const PORT = 3000;
 const HOST = '0.0.0.0'
 
