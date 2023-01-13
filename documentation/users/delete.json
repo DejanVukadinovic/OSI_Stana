@@ -5,7 +5,8 @@
     },
     "res":
     {
-        "Message": "Account deleted"
+        "Message": "Account deleted",
+        "Error":"User with this username does not exist."
     },
     "header":
     {
