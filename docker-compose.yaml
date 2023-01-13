@@ -20,7 +20,7 @@ services:
     expose:
       - 5000
   api:
-    build: ./api
+    build: ./apijs
     ports:
       - "3001:3000"
     depends_on:
@@ -34,7 +34,7 @@ services:
       DB_NAME: ${DB_NAME}
       JWT_KEY: ${JWT_KEY}
   users:
-    build: ./users
+    build: ./usersjs
     ports:
       - "3002:3000"
     depends_on:
