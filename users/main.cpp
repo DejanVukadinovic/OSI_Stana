@@ -59,8 +59,8 @@ crow::json::wvalue list_users(const std::string authorization)
 		}
 		else
 		{
-			std::string message="Error: User does not have authorization.";
-		    result["Message"]=message;
+			std::string message="User does not have authorization.";
+		    return result["Error"]=message;
 		}
 
 		delete res;
@@ -127,8 +127,8 @@ crow::json::wvalue list_drivers(const std::string authorization)
 		}
 		else
 		{
-			std::string message="Error: User does not have authorization.";
-		    result["Message"]=message;
+			std::string message="User does not have authorization.";
+		    return result["Error"]=message;
 		}
 		delete res;
 		delete stmt;
@@ -194,8 +194,8 @@ crow::json::wvalue list_passengers(const std::string authorization)
 		}
 		else
 		{
-			std::string message="Error: User does not have authorization.";
-		    result["Message"]=message;
+			std::string message="User does not have authorization.";
+		    return result["Error"]=message;
 		}
 
 		delete res;
@@ -262,15 +262,15 @@ crow::json::wvalue driver_details(const std::string username,const std::string a
 			}
 			else
 			{
-				std::string message="Error: Driver with this username does not exist.";
-                return result["Message"]=message;
+				std::string message="Driver with this username does not exist.";
+                return result["Error"]=message;
 			}
 		}
 		}
 		else
 		{
-			std::string message="Error: User does not have authorization.";
-		    return result["Message"]=message;
+			std::string message="User does not have authorization.";
+		    return result["Error"]=message;
 		}
 
 		delete res;
@@ -337,15 +337,15 @@ crow::json::wvalue passenger_details(const std::string username,const std::strin
 			}
 			else 
 			{
-				std::string message="Error: Passenger with this username does not exist.";
-		        return result["Message"]=message;
+				std::string message="Passenger with this username does not exist.";
+		        return result["Error"]=message;
 			}
 		}
 		}
 		else
 		{
-			std::string message="Error: User does not have authorization.";
-		    return result["Message"]=message;
+			std::string message="User does not have authorization.";
+		    return result["Error"]=message;
 		}
 
 		delete res;
@@ -402,7 +402,7 @@ crow::json::wvalue login_user(const std::string username, const std::string pass
 			// Stavljate u result objekat
 			result["username"] = res->getString("username");
 			result["name"] = res->getString("name");
-			result["user type"]=res->getInt("user_type")?(res->getInt("user_type")==1?"Driver":"Passenger"):"Admin";
+			result["user_type"]=res->getInt("user_type")?(res->getInt("user_type")==1?"Driver":"Passenger"):"Admin";
 			if(res->getInt("login_num")==params::login_limit)
 			{
 			result["password_change"] = "true";
@@ -420,7 +420,13 @@ crow::json::wvalue login_user(const std::string username, const std::string pass
 		    stmt->setInt(1, number_login);
 			stmt->setString(2,username);
 		    pom = stmt->executeQuery();
-
+			}
+			if(res->getInt("deleted")==1)
+			{
+				stmt = con->prepareStatement("UPDATE user SET deleted=? WHERE username=?");
+		        stmt->setInt(1, 0);
+				stmt->setString(2,username);
+		        pom = stmt->executeQuery();
 			}
 			// sha256 prima referencu na password pa castujem const referencu u obicnu, ne znam da li ovo treba ali za svaki slucaj
 			std::string sPassword = password;
@@ -441,8 +447,8 @@ crow::json::wvalue login_user(const std::string username, const std::string pass
 		}
 		else
 		{
-			std::string message="Error: Username does not exist.";
-		     return result["Message"]=message;
+			std::string message="Username does not exist.";
+		     return result["Error"]=message;
 		}
 		// Dalje sve isti boilerplate
 		delete res;
@@ -478,6 +484,22 @@ crow::json::wvalue register_user(const std::string username, const std::string p
 		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
+		if(username.empty()){
+			std::string message="You must enter a username.";
+			return result["Error"]=message;
+		}
+		else if(password_p.empty()){
+			std::string message="You must enter a password.";
+			return result["Error"]=message;
+		}
+		else if(name.empty()){
+			std::string message="You must enter a name.";
+			return result["Error"]=message;
+		}
+		else if(user_type.empty()){
+			std::string message="You must enter user type.";
+			return result["Error"]=message;
+		}
 
 		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
 		stmt->setString(1, username);
@@ -485,8 +507,8 @@ crow::json::wvalue register_user(const std::string username, const std::string p
 		res->beforeFirst();
 		if(res->next())
 		{
-		std::string message="Error: Username already exists";
-		 return result["Message"]=message;
+		std::string message="Username already exists";
+		 return result["Error"]=message;
 		}
 		else 
 		{   
@@ -498,11 +520,11 @@ crow::json::wvalue register_user(const std::string username, const std::string p
 		stmt->setInt(3,0);
 		stmt->setString(4, name);
 		stmt->setInt(5, 0);
-		if(user_type=="Admin")
+		if(user_type=="admin")
 		{
 		    stmt->setInt(6, 0);
 		}
-		else if (user_type=="Driver")
+		else if (user_type=="driver")
 		{
 			stmt->setInt(6, 1);
 		}
@@ -516,22 +538,22 @@ crow::json::wvalue register_user(const std::string username, const std::string p
         res=stmt->executeQuery();
 		res->next();
 		int iduser=res->getInt("iduser");
-		if (user_type=="Driver")
+		if (user_type=="driver")
 		{
 		stmt = con->prepareStatement("INSERT INTO driver(iduser,suspended) VALUES(?,?)");
 		stmt->setInt(1, iduser);
 		stmt->setInt(2, 0);
 		res=stmt->executeQuery();
 		}
-		else if (user_type=="Passenger")
+		else if (user_type=="passenger")
 		{
 		stmt = con->prepareStatement("INSERT INTO passenger(iduser,suspended) VALUES(?,?)");
 		stmt->setInt(1, iduser);
 		stmt->setInt(2, 0);
 		res=stmt->executeQuery();
 		}
-		std::string message="Status: true";
-		return result["Message"]=message;
+		std::string message="true";
+		return result["Status"]=message;
 		}
 		delete res;
 		delete stmt;
@@ -567,13 +589,24 @@ crow::json::wvalue edit_profile(const std::string username,const std::string new
 		con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
-
+        
+		stmt = con->prepareStatement("SELECTE * FROM user WHERE user.username=?");
+		stmt->setString(1, username);
+		res=stmt->executeQuery();
+        if(res->next())
+		{
         stmt = con->prepareStatement("UPDATE user SET name=? WHERE user.username=?");
 		stmt->setString(1, new_name);
 		stmt->setString(2, username);
 		res=stmt->executeQuery();
 		std::string message="Name changed";
-		result["Message"]=message;
+		return result["Message"]=message;
+		}
+		else
+		{
+			std::string message="User with this username does not exist.";
+		    return result["Error"]=message;
+		}
 		
 		delete res;
 		delete stmt;
@@ -620,8 +653,14 @@ crow::json::wvalue suspension(const std::string username,const std::string autho
 		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
 		stmt->setString(1, username);
 		res=stmt->executeQuery();
-		res->next();
+		if(res->next())
+		{
 		int iduser=res->getInt("iduser");
+		if(res->getInt("deleted"))
+		{
+			std::string message="Unable to suspend account. Account is deleted.";
+			return result["Error"]=message;
+		}
 		if(res->getInt("user_type")==2)
 		{
 		stmt = con->prepareStatement("UPDATE passenger SET suspended=? WHERE passenger.iduser=?");
@@ -642,14 +681,20 @@ crow::json::wvalue suspension(const std::string username,const std::string autho
 		}
 		else
 		{
-		std::string message="Error: Unable to suspend account";
-		return result["Message"]=message;	
+		std::string message="Unable to suspend account";
+		return result["Error"]=message;	
 		}
 		}
 		else
 		{
-			std::string message="Error: User does not have authorization.";
-		    return result["Message"]=message;
+			std::string message="User with this username does not exist.";
+		    return result["Error"]=message;
+		}
+		}
+		else
+		{
+			std::string message="User does not have authorization.";
+		    return result["Error"]=message;
 		}
 		delete res;
 		delete stmt;
@@ -694,8 +739,14 @@ crow::json::wvalue activation(const std::string username,const std::string autho
 		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
 		stmt->setString(1, username);
 		res=stmt->executeQuery();
-		res->next();
+		if(res->next())
+		{
 		int iduser=res->getInt("iduser");
+		if(res->getInt("deleted"))
+		{
+			std::string message="Unable to suspend account. Account is deleted.";
+			return result["Error"]=message;
+		}
 		if(res->getInt("user_type")==2)
 		{
 		stmt = con->prepareStatement("UPDATE passenger SET suspended=? WHERE passenger.iduser=?");
@@ -716,14 +767,19 @@ crow::json::wvalue activation(const std::string username,const std::string autho
 		}
 		else
 		{
-		std::string message="Error: Unable to activate account.";
-		return result["Message"]=message;	
+		std::string message="Unable to activate account.";
+		return result["Error"]=message;	
+		}
+		}
+		else{
+			std::string message="User with this username does not exist.";
+		    return result["Error"]=message;
 		}
 		}
 		else
 		{
-            std::string message="Error: User does not have authorization.";
-		    return result["Message"]=message;
+            std::string message="User does not have authorization.";
+		    return result["Error"]=message;
 		}
 		delete res;
 		delete stmt;
@@ -762,14 +818,20 @@ crow::json::wvalue delete_user(const std::string username)
 		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
 		stmt->setString(1, username);
 		res=stmt->executeQuery();
-		res->next();
-		
+		if(res->next())
+		{
 		stmt = con->prepareStatement("UPDATE user SET deleted=? WHERE user.username=?");
 		stmt->setInt(1,1);
 		stmt->setString(2,username);
 		res=stmt->executeQuery();
 		std::string message="Account deleted";
 		return result["Message"]=message;	
+		}
+		else
+		{
+			std::string message="User with this username does not exist.";
+		return result["Error"]=message;	
+		}
 		
 		delete res;
 		delete stmt;
@@ -804,7 +866,11 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 		std::cout<<"Connected"<<std::endl;
 		con->setSchema(getenv("DB_NAME"));
 
-        std::string message;
+		stmt = con->prepareStatement("SELECT * FROM user WHERE user.username=?");
+		stmt->setString(1, username);
+		res=stmt->executeQuery();
+		if(res->next())
+		{
         if(old_password != new_password){
 			sql::ResultSet* pom;
             std::string protected_password = sha256(new_password);
@@ -816,13 +882,20 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 		    stmt->setInt(1, 0);
 		    stmt->setString(2, username);
 		    res=stmt->executeQuery();
-		    message="Password changed";
+		    std::string message="Password changed";
 		    return result["Message"]=message;
         }
         else{
-            message="Error: New password and old password are the same.";
-            return result["Message"]=message;
+            std::string message="New password and old password are the same.";
+            return result["Error"]=message;
             }
+		}
+		else
+		{
+			std::string message="User with this username does not exist.";
+		    return result["Error"]=message;	
+
+		}
 
 		delete res;
 		delete stmt;

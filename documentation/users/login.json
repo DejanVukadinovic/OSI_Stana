@@ -15,7 +15,9 @@
         "Error":"The number of logins exceeds the limit.",
         
         "name": "Admin",
-        "username": "admin"
+        "username": "admin",
+        
+        "Error": "Username does not exist."
     },
     "header":
     {
