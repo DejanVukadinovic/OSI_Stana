@@ -1,0 +1,17 @@
+{
+    "req":
+    {
+        "stations":[
+            "banja luka", "laktasi", "gradiska"
+        ]
+
+    },
+    "res":
+    {
+        "distances":[
+            ["banja luka", "laktasi", 50],
+            ["laktasi", "gradiska", 0]
+        ]
+
+    }
+}

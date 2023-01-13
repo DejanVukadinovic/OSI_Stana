@@ -1,0 +1,23 @@
+{
+    "req":
+    {
+        "username":"Maja12345",
+        "password":"maja123",
+        "name":"Maja",
+        "user_type":"passenger"
+    },
+    "res":
+    {
+        "Status": "true",
+        "Error":"You must enter a username.",
+        "Error":"You must enter a password.",
+        "Error":"You must enter a name.",
+        "Error":"You must enter a user_type.",
+        "Error": "Username already exists"
+    },
+    "header":
+    {
+        "path":"/register",
+        "method":"POST"
+    }
+}

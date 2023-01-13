@@ -1,0 +1,22 @@
+{
+    "req":
+    {},
+    "res":
+    {
+        ["1": {
+            "user_type": "Admin",
+            "name": "Admin",
+            "deleted": "False",
+            "username": "admin"
+        }],
+        
+        "Error": "User does not have authorization."
+    },
+    "header":
+    { 
+        "path":"/list",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.GilXwqHJVZkpeg6m7MZ4tZQYmDlppdMtmHvWxO_TMMM",
+        "method":"GET"
+        //must be admin
+    }
+}

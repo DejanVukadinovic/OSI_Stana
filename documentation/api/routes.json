@@ -1,0 +1,13 @@
+{
+    "req":
+    {
+        "price":5,
+        "repeat":0,
+        "time":3218032149821,
+        "duration":4,
+        "stations":[
+            "banja luka", "laktasi", "gradiska"
+        ]
+
+    }
+}

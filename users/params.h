@@ -8,4 +8,5 @@ namespace params
 	const char* db_user = "root";
 	const char* db_password = "osi2022";
 	const int port = 3000;
+	const int login_limit=10;
 }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        padding: 6rem 4rem;
+        font-weight: 400;
+      }
+      .content {
+        display: flex;
+        flex-direction: row;
+      }
+      .row {
+        display: flex;
+      }
+      .w-50 {
+        width: 16rem;
+      }
+      .flex-c {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Report</h1>
+    <div class="content">
+      <div class="flex-c">
+        <div class="row">Submitted by: {{ user }}</div>
+        <div class="row">Date: {{ date }}</div>
+        <div class="row">Time: {{ time }}</div>
+        <div class="row">Route: {{ route }}</div>
+        <div class="row">Content: <br/> {{ content }}</div>
+      </div>
+    </div>
+  </body>
+</html>
