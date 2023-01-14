@@ -374,7 +374,7 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
             return
         }
         else if(!req.body.new_password){
-            res.send(400,{err:"You must enterthe new password."})
+            res.send(400,{err:"You must enter the new password."})
             return
         }
         const [tmpRes] = await con.promise().query("SELECT * FROM user WHERE username=?",[req.body.username])

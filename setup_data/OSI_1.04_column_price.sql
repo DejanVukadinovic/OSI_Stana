@@ -1,0 +1,1 @@
+ALTER TABLE `OSI_1.04`.`route` CHANGE price price DECIMAL(6,2) NOT NULL;
