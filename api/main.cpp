@@ -9,8 +9,50 @@
 #include <cppconn/prepared_statement.h>
 
 #include "params.h"
-
+//#include "sha256.h"
+//#include "jwt/jwt.hpp"
 #include "string"
+
+/*std::string jwt_return_username(const std::string& token){
+	std::string jwt_key = getenv("JWT_KEY");
+    auto dec_obj = jwt::decode(token, jwt::params::algorithms({"HS256"}), jwt::params::secret(jwt_key));
+    return dec_obj.payload().get_claim_value<std::string>("user");
+
+}*/
+
+bool check_user_authorization(const std::string& user)
+{
+    sql::Driver* driver;
+    sql::Connection* con;
+    sql::PreparedStatement* stmt;
+    sql::ResultSet* res;
+
+    driver = get_driver_instance();
+    con = driver->connect(getenv("DB_HOST"), getenv("DB_USER"), getenv("DB_PASSWORD"));
+    std::cout<<"Connected"<<std::endl;
+    con->setSchema(getenv("DB_NAME"));
+
+    stmt = con->prepareStatement("SELECT user_type FROM users WHERE username = ?");
+	    stmt->setString(1, user);
+    res = stmt->executeQuery();
+    if (res->next())
+    {
+        int user_type = res->getInt("user_type");
+        if (user_type == 0)
+        {
+            delete res;
+            delete stmt;
+            delete con;
+            return true;
+        }
+    }
+
+    delete res;
+    delete stmt;
+    delete con;
+    return false;
+}
+
 
 crow::json::wvalue bus_class(const std::string description,const double price_coefficient)
 {
@@ -366,7 +408,7 @@ int main()
 		{
 			return "Hello world!!";
 		});
-	CROW_ROUTE(app, "/bus_class").methods("POST"_method)([](const crow::request& req)
+	CROW_ROUTE(app, "/bus_class").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string description = params.get("description");
@@ -377,7 +419,7 @@ int main()
 			resp.add_header("Access-Control-Allow-Origin", "*");
 			return resp;
 		});
-	CROW_ROUTE(app, "/discount").methods("POST"_method)([](const crow::request& req)
+	CROW_ROUTE(app, "/discount").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string min_age_s = params.get("min_age");
@@ -392,7 +434,7 @@ int main()
 			return resp;
 			
 		});
-		CROW_ROUTE(app, "/route/set_driver").methods("POST"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/route/set_driver").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string idroute_s = params.get("idroute");
@@ -405,7 +447,7 @@ int main()
 			return resp;
 			
 		});
-		CROW_ROUTE(app, "/route/delete").methods("PUT"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/route/delete").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string idroute_s = params.get("idroute");
@@ -416,7 +458,7 @@ int main()
 			return resp;
 			
 		});
-		CROW_ROUTE(app, "/busclass/delete").methods("PUT"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/busclass/delete").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string idbus_class_s = params.get("idbus_class");
@@ -427,7 +469,7 @@ int main()
 			return resp;
 			
 		});
-		CROW_ROUTE(app, "/discounts/delete").methods("PUT"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/discounts/delete").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string iddiscounts_s = params.get("iddiscounts");
@@ -438,7 +480,7 @@ int main()
 			return resp;
 			
 		});
-		CROW_ROUTE(app, "/discounts/edit").methods("PUT"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/discounts/edit").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string iddiscounts_s = params.get("iddiscounts");
