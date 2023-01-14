@@ -9,6 +9,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const Mustache = require('mustache');
 const bodyParser = require('body-parser')
+const {PRICE_COEFFICIENT}=require('./price_coefficient')
 
 const PORT = 3000;
 const HOST = '0.0.0.0'
@@ -40,6 +41,15 @@ function authenticateToken(req, res, next) {
       req.user = user
   
       next()
+    })
+  }
+
+  function authenticateAdmin(req, res, next) {
+    con.connect(async function(err){
+        if(err) throw err;
+        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.user])
+        if(typeRes[0]){res.send(403)}
+        next()
     })
   }
 
@@ -113,6 +123,83 @@ app.get("/tickets", authenticateToken, (req, res)=>{
     })
 })
 
+
+app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.name){
+            res.send(400,{err:"You must enter a route name."})
+            return
+        }
+        else if(!req.body.time){
+            res.send(400,{err:"You must enter a departure time."})
+            return
+        }
+        else if(!req.body.stations.length){
+            res.send(400,{err:"You must enter route stations."})
+            return
+        }
+        
+        for (let i = 0; i < req.body.stations.length; i++) {
+            const [stationRes]=await con.promise().query("SELECT * FROM station WHERE station.idstation=?",[req.body.stations[i]])
+            if(!stationRes[0]){
+                res.send(400,{err:"All used stations must be defined."}) 
+                return
+            }
+          }
+
+        
+            const [distanceRes]=await con.promise().query("SELECT * FROM distance")
+            let distanceTotal =0;
+            let timeTotal=0;
+            let timeless = []
+            for (let i = 0; i < req.body.stations.length-1; i++) {
+                let idf = req.body.stations[i]
+                let ids = req.body.stations[i+1]
+                let dist = 0
+                let timedur = 0
+                distanceRes.forEach(element => {
+                    let {idstation, idstation2, distance, time_estimate} = element
+                    if ((idf==idstation && ids==idstation2)||(idf==idstation2 && ids==idstation)){
+                        dist = distance;
+                        timedur = time_estimate
+                        
+                    if(timedur){
+                        timeTotal+=parseFloat(timedur)
+                        distanceTotal+=parseFloat(dist)
+                        console.log(timeTotal)
+                        console.log(distanceTotal)
+                    }else{
+                        timeless.push(element)
+                    }
+                }
+                });  
+              }
+              const avgVel = distanceTotal/timeTotal;
+              timeless.forEach(el=>{
+                timeTotal+=el.distance*avgVel
+                distanceTotal+=el.distance
+              })
+              let duration=req.body.duration
+              if( timeTotal>req.body.duration)duration=timeTotal
+              let price;
+              if(!req.body.price) price=parseFloat(distanceTotal)*PRICE_COEFFICIENT
+              else price=req.body.price
+              let repetition=req.body.repetition?req.body.repetition:0
+              await con.promise().query("INSERT INTO route(name,price,repetition,time,duration,tickets_sold,active) VALUES(?,?,?,?,?,?,?)",
+              [req.body.name,price,repetition,req.body.time,duration,0,1])
+              let i=0
+              const [routeID]=await con.promise().query("SELECT * FROM route WHERE idroute=(SELECT max(idroute) FROM route);")
+              for (let i = 0; i < req.body.stations.length; i++){
+              await con.promise().query("INSERT INTO station_has_route(idstation,idroute,order_num) VALUES(?,?,?)",
+              [req.body.stations[i],routeID[0].idroute,i+1])
+              }
+             
+              
+        })
+        res.send(200,{message:"Route registered."})
+        
+})
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
-console.log(`Running on: http://${HOST}:3003`)
+console.log(`Running on: http://${HOST}:3001`)
