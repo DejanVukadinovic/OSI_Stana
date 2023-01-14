@@ -276,23 +276,6 @@ app.put('/route/delete', jsonParser, authenticateToken, authenticateAdmin, (req,
     })
 })
 
-app.post('/route/set_driver', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{//razmisliti izmjene
-    con.connect(async function(err){
-        if(err) throw err;
-        if(!req.body.idroute){
-            res.send(400,{err:"You must enter idroute!"})
-            return
-        }
-        else if(!req.body.iddriver){
-            res.send(400,{err:"You must enter iddriver!"})
-            return
-        }
-        await con.promise().query("INSERT INTO route_has_driver (idroute,iddriver) VALUES (?,?)", [req.body.idroute,req.body.iddriver])
-        
-        res.send(200, {message:"Driver has been set to the route!"})
-    })
-})
-
 app.post('/discount', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
