@@ -10,6 +10,7 @@ const FormData = require('form-data');
 const Mustache = require('mustache');
 const bodyParser = require('body-parser')
 const {PRICE_COEFFICIENT}=require('./price_coefficient')
+const cors = require('cors')
 
 const PORT = 3000;
 const HOST = '0.0.0.0'
@@ -200,6 +201,211 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
         res.send(200,{message:"Route registered."})
         
 })
+
+app.get('/bus/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idbus){
+            res.send(400,{err:"You must enter idbus!"})
+            return
+        }
+        const [userRes] = await con.promise().query("SELECT * FROM bus where idbus = ?", [req.body.idbus])
+        if(!userRes[0]){
+            res.send(400, {err:"Bus details aren't available"})
+            return
+        }
+        const sendRes={idbus:userRes[0].idbus,seats:userRes[0].seats,is_working:userRes[0].is_working,carrier:userRes[0].carrier,idbus_class:userRes[0].idbus_class}
+        res.send(200,sendRes)
+        
+    })
+})
+
+app.put('/discounts/edit', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.coefficient){
+            res.send(400,{err:"You must enter coefficient!"})
+            return
+        }
+        else if(!req.body.iddiscounts){
+            res.send(400,{err:"You must enter iddiscounts!"})
+            return
+        }
+        await con.promise().query("UPDATE discounts SET coefficient=? WHERE discounts.iddiscounts=?", [req.body.coefficient,req.body.iddiscounts])
+        
+        res.send(200, {message:"Discount changed!"})
+    })
+})
+
+app.put('/discounts/delete', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.iddiscounts){
+            res.send(400,{err:"You must enter iddiscounts!"})
+            return
+        }
+        await con.promise().query("UPDATE discounts SET deleted=? WHERE discounts.iddiscounts=?", [1,req.body.iddiscounts])
+        
+        res.send(200, {message:"Discount deleted!"})
+    })
+})
+
+app.put('/busclass/delete', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idbus_class){
+            res.send(400,{err:"You must enter idbus_class!"})
+            return
+        }
+        await con.promise().query("UPDATE bus_class SET deleted=? WHERE bus_class.idbus_class=?", [1,req.body.idbus_class])
+        
+        res.send(200, {message:"Bus class deleted!"})
+    })
+})
+
+app.put('/route/delete', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idroute){
+            res.send(400,{err:"You must enter idroute!"})
+            return
+        }
+        await con.promise().query("UPDATE route SET active=? WHERE route.idroute=?", [0,req.body.idroute])
+        
+        res.send(200, {message:"Route deleted!"})
+    })
+})
+
+app.post('/discount', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.min_age){
+            res.send(400,{err:"You must enter min_age!"})
+            return
+        }
+        else if(!req.body.max_age){
+            res.send(400,{err:"You must enter max_age!"})
+            return
+        }
+        else if(!req.body.coefficient){
+            res.send(400,{err:"You must enter coefficient!"})
+            return
+        }
+        await con.promise().query("INSERT INTO discounts(min_age,max_age,coefficient,deleted) VALUES(?,?,?,?)", [req.body.min_age,req.body.max_age,req.body.coefficient,0])
+        
+        res.send(200, {message:"Discount has been added!"})
+    })
+})
+
+app.post('/bus_class', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        if(!req.body.description){
+            res.send(400,{err:"You must enter bus class description!"})
+            return
+        }
+        else if(!req.body.price_coefficient){
+            res.send(400,{err:"You must enter price coefficient!"})
+            return
+        }
+        console.log(req.body)
+        await con.promise().query("INSERT INTO bus_class(description,price_coefficient,deleted) VALUES(?,?,?)", [req.body.description,req.body.price_coefficient,0])
+        
+        res.send(200, {message:"Bus class has been set!"})
+    })
+})
+
+app.get('/bus/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        const [userRes]=await con.promise().query("SELECT * FROM bus")
+        if(!userRes[0]){
+            res.send(400, {err:"Bus details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((bus) => {
+            sendRes.push({
+                idbus: bus.idbus,
+                seats: bus.seats,
+                is_working: bus.is_working,
+                carrier: bus.carrier,
+                idbus_class: bus.idbus_class
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
+app.post('/route/set_driver', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+    con.connect(async function (err) {
+        if (err) throw err;
+        if (!req.body.idroute) {
+            res.status(400).json({ err: "You must enter idroute!" });
+            return;
+        } else if (!req.body.iddriver) {
+            res.status(400).json({ err: "You must enter iddriver!" });
+            return;
+        }
+
+        const routeExists = await con.promise().query("SELECT 1 FROM route WHERE idroute = ?", [req.body.idroute]);
+        if (!routeExists[0].length) {
+            res.status(400).json({ err: "idroute does not exist in the route table." });
+            return;
+        }
+
+        const driverExists = await con.promise().query("SELECT 1 FROM driver WHERE iddriver = ?", [req.body.iddriver]);
+        if (!driverExists[0].length) {
+            res.status(400).json({ err: "iddriver does not exist in the driver table." });
+            return;
+        }
+
+        await con.promise().query("INSERT INTO route_has_driver (idroute,iddriver) VALUES (?,?)", [req.body.idroute, req.body.iddriver]);
+
+        res.send(200,{ message: "Driver has been set to the route!" });
+    });
+});
+
+app.put('/bus/deactivate', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idbus){
+            res.send(400,{err:"You must enter idbus!"})
+            return
+        }
+        const [userRes] = await con.promise().query("SELECT * FROM bus where idbus = ?", [req.body.idbus])
+        if(!userRes[0]){
+            res.send(400, {err:"Bus with this idbus doesn't exist"})
+            return
+        }
+        let updateQuery = "UPDATE bus SET is_working = 0 WHERE idbus = ?";
+        await con.promise().query(updateQuery, [req.body.idbus])
+        res.send(200,{message: "Bus is_working value has been set to 0!"})
+    })
+});
+
+
+app.put('/bus/activate', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idbus){
+            res.send(400,{err:"You must enter idbus!"})
+            return
+        }
+        const [userRes] = await con.promise().query("SELECT * FROM bus where idbus = ?", [req.body.idbus])
+        if(!userRes[0]){
+            res.send(400, {err:"Bus with this idbus doesn't exist"})
+            return
+        }
+        let updateQuery = "UPDATE bus SET is_working = 1 WHERE idbus = ?";
+        await con.promise().query(updateQuery, [req.body.idbus])
+        res.send(200,{message: "Bus is_working value has been set to 1!"})
+    })
+});
+
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3001`)
