@@ -8,11 +8,13 @@ const fs = require('fs');
 const axios = require('axios');
 const FormData = require('form-data');
 const Mustache = require('mustache');
-const bodyParser = require('body-parser')
 const cors = require("cors")
 var crypto = require('crypto');
 const PORT = 3000;
 const HOST = '0.0.0.0'
+const bodyParser = require("body-parser")
+
+const jsonParser = bodyParser.json();
 
 let con = mysql.createConnection({
     host:process.env.DB_HOST,
@@ -20,8 +22,6 @@ let con = mysql.createConnection({
     password:process.env.DB_PASSWORD,
     database: process.env.DB_NAME
 })
-
-const jsonParser = bodyParser.json()
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
@@ -50,6 +50,7 @@ function authenticateAdmin(req, res, next) {
 
 const app = express()
 app.use(cors())
+app.use(bodyParser.json())
 app.get('/', (req, res)=>{
     res.send("Hello world!!")
 })
@@ -57,6 +58,7 @@ app.get('/login', jsonParser, (req, res)=>{
     con.connect(async function(err) {
         
         if(err) throw err;
+        console.log(req.body)
         const [userRes] = await con.promise().query("SELECT * FROM user WHERE username = ?", [req.body.username])
         const hash = crypto.createHash('sha256').update(req.body.password).digest('hex');
         if(!userRes[0]){

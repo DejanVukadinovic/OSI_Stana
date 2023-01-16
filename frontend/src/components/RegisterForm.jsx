@@ -1,10 +1,17 @@
+import axios from "axios"
 function RegisterForm() {
     let register = (e)=>{
         e.preventDefault()
         const data = new FormData(e.target);
+        const params = {user_type:"passenger"}
         for (const [name,value] of data) {
             console.log(name, ":", value)
+            params[name]=value;
           }
+        axios.get("http://127.0.0.1:3002/register", {params}).then(res=>{
+          console.log(res)
+        })
+        
         }
     return (  <form onSubmit={register} className="flex flex-col justify-center text-2xl">
     <label htmlFor="name">Name</label>

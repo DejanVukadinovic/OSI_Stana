@@ -1,36 +1,24 @@
-import React from "react";
-import {useSelector, useDispatch} from "react-redux";
-import {increment, decrement} from "../redux/example/exampleActions";
-
+import Footer from "./Footer";
+import Navbar from "./Navbar";
+import { useSelector } from "react-redux";
+import axios from "axios";
+import { useEffect } from "react";
 
 function HomePage() {
-	const counter = useSelector((state) => state.example.counter);
-	const dispatch = useDispatch();
-	return (
-		<divc className="">
-			<h1 className="text-3xl font-bold underline text-center">Counter</h1>
-			<div className="flex justify-center pt-4">
-				<button
-					className="border-2 border-black p-2 text-xl rounded-2xl hover:bg-black hover:text-white"
-					onClick={(e) => {
-						dispatch(increment());
-					}}
-				>
-					Increase
-				</button>
-				<div className="text-2xl p-4 stroke-2 font-bold">{counter}</div>
-
-				<button
-					className="border-2 border-black p-2 text-xl rounded-2xl hover:bg-black hover:text-white"
-					onClick={(e) => {
-						dispatch(decrement());
-					}}
-				>
-					Decrease
-				</button>
-			</div>
-		</divc>
-	);
+    const user = useSelector(state=>state.user.user)
+    useEffect(() => {
+        const headers = {Authorization: "Token_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.kviVZyJR6-0BtGQa3135RnvedjNW_MBrYLOe4pxwUQ4"}
+        axios.get("http://127.0.0.1:3004/reports", {headers}).then(res=>console.log(res.data))
+        
+    }, [])
+    
+    return ( <div className="flex flex-col" style={{minHeight:"100vh"}}>
+        <Navbar />
+        <div className="flex-grow">
+            {user?.user_type}
+        </div>
+        <Footer />
+    </div> );
 }
 
 export default HomePage;

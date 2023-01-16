@@ -8,6 +8,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const Mustache = require('mustache');
 const bodyParser = require('body-parser')
+const cors  =require('cors')
 
 const HOST = "0.0.0.0"
 const PORT = 3000
@@ -49,6 +50,8 @@ function authenticateToken(req, res, next) {
   }
 
 let app = express()
+
+app.use(cors())
 
 app.get('/', (req, res)=>{
     res.send("Hello world!!")
@@ -99,7 +102,7 @@ app.post('/report/create', jsonParser, authenticateToken, (req, res)=>{
     })
 })
 
-app.get("/reports", (req, res)=>{
+app.get("/reports", authenticateToken, (req, res)=>{
     con.connect( async function(err){
         if(err) {res.send(500);throw err};
         const [report] = await con.promise().query("SELECT report.idreport, report.idroute FROM report")
