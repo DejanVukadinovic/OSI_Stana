@@ -434,6 +434,56 @@ app.put('/bus/activate', jsonParser, authenticateToken, authenticateAdmin, (req,
     })
 });
 
+app.get('/route/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        const [userRes]=await con.promise().query("SELECT * FROM route")
+        if(!userRes[0]){
+            res.send(400, {err:"Route details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((route) => {
+            sendRes.push({
+                idroute: route.idroute,
+                name: route.name,
+                price: route.price,
+                repeat: route.repeat,
+                time: route.time,
+                duration: route.duration,
+                tickets_sold: route.tickets_sold,
+                active: route.active
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
+app.get('/station/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        const [userRes]=await con.promise().query("SELECT * FROM station")
+        if(!userRes[0]){
+            res.send(400, {err:"Station details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((station) => {
+            sendRes.push({
+                idstation: station.idstation,
+                name: station.name,
+                country: station.country,
+                deleted: station.deleted
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3001`)
