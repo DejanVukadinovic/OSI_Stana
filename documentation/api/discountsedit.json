@@ -1,0 +1,19 @@
+{
+    "req":
+    {
+        "coefficient":"2",
+        "iddiscounts":"1"
+    },
+    "res":
+    {
+        "Error":"You must enter coefficient!",
+        "Error":"You must enter iddiscounts!",
+        "Message": "Discount changed!"
+    },
+    "header":
+    {
+        "path":"/discounts/edit",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
+        "method":"PUT"
+    }
+}

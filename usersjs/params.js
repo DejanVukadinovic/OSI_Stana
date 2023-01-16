@@ -1,0 +1,3 @@
+const LOGIN_LIMIT=10
+
+exports.LOGIN_LIMIT=LOGIN_LIMIT
