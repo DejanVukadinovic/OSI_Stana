@@ -233,7 +233,7 @@ app.put('/discounts/edit', jsonParser, authenticateToken, authenticateAdmin, (re
         }
         const discountExists = await con.promise().query("SELECT 1 FROM discounts WHERE iddiscounts = ?", [req.body.iddiscounts]);
         if (!discountExists[0].length) {
-            res.status(400).json({ err: "Discount doesn't exist in the discount table" });
+            res.status(400).json({ err: "Discount with that id doesn't exist" });
             return;
         }
         else{
@@ -253,7 +253,7 @@ app.put('/discounts/delete', jsonParser, authenticateToken, authenticateAdmin, (
         }
         const discountExists = await con.promise().query("SELECT 1 FROM discounts WHERE iddiscounts = ?", [req.body.iddiscounts]);
         if (!discountExists[0].length) {
-            res.status(400).json({ err: "Discount doesn't exist in the discount table" });
+            res.status(400).json({ err: "Discount with that id doesn't exist" });
             return;
         }
         else{
@@ -273,7 +273,7 @@ app.put('/busclass/delete', jsonParser, authenticateToken, authenticateAdmin, (r
         }
         const busclassExists = await con.promise().query("SELECT 1 FROM bus_class WHERE idbus_class = ?", [req.body.idbus_class]);
         if (!busclassExists[0].length) {
-            res.status(400).json({ err: "Bus class doesn't exist in the bus_class table" });
+            res.status(400).json({ err: "Bus class with that id doesn't exist" });
             return;
         }
         else{
@@ -293,7 +293,7 @@ app.put('/route/delete', jsonParser, authenticateToken, authenticateAdmin, (req,
         }
         const routeExists = await con.promise().query("SELECT 1 FROM route WHERE idroute = ?", [req.body.idroute]);
         if (!routeExists[0].length) {
-            res.status(400).json({ err: "idroute does not exist in the route table." });
+            res.status(400).json({ err: "Route with that id doesn't exist" });
             return;
         }
         else{
@@ -478,6 +478,50 @@ app.get('/station/list', jsonParser, authenticateToken, authenticateAdmin, (req,
                 name: station.name,
                 country: station.country,
                 deleted: station.deleted
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
+app.get('/route/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idroute){
+            res.send(400,{err:"You must enter idroute!"})
+            return
+        }
+        const [userRes] = await con.promise().query("SELECT * FROM route where idroute = ?", [req.body.idroute])
+        if(!userRes[0]){
+            res.send(400, {err:"Route details aren't available"})
+            return
+        }
+        const sendRes={idroute:userRes[0].idroute,name:userRes[0].name,price:userRes[0].price,repeat:userRes[0].repeat,time:userRes[0].time,duration:userRes[0].duration,tickets_sold:userRes[0].tickets_sold,active:userRes[0].active}
+        res.send(200,sendRes)
+        
+    })
+})
+
+app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        const [userRes]=await con.promise().query("SELECT * FROM route WHERE active = 1")
+        if(!userRes[0]){
+            res.send(400, {err:"Route details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((route) => {
+            sendRes.push({
+                idroute: route.idroute,
+                name: route.name,
+                price: route.price,
+                repeat: route.repeat,
+                time: route.time,
+                duration: route.duration,
+                tickets_sold: route.tickets_sold,
+                active: route.active
             });
         });
         res.send(200, sendRes)
