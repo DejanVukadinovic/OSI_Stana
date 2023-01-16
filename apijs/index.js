@@ -231,9 +231,16 @@ app.put('/discounts/edit', jsonParser, authenticateToken, authenticateAdmin, (re
             res.send(400,{err:"You must enter iddiscounts!"})
             return
         }
+        const discountExists = await con.promise().query("SELECT 1 FROM discounts WHERE iddiscounts = ?", [req.body.iddiscounts]);
+        if (!discountExists[0].length) {
+            res.status(400).json({ err: "Discount doesn't exist in the discount table" });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE discounts SET coefficient=? WHERE discounts.iddiscounts=?", [req.body.coefficient,req.body.iddiscounts])
         
         res.send(200, {message:"Discount changed!"})
+        }
     })
 })
 
@@ -244,9 +251,16 @@ app.put('/discounts/delete', jsonParser, authenticateToken, authenticateAdmin, (
             res.send(400,{err:"You must enter iddiscounts!"})
             return
         }
+        const discountExists = await con.promise().query("SELECT 1 FROM discounts WHERE iddiscounts = ?", [req.body.iddiscounts]);
+        if (!discountExists[0].length) {
+            res.status(400).json({ err: "Discount doesn't exist in the discount table" });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE discounts SET deleted=? WHERE discounts.iddiscounts=?", [1,req.body.iddiscounts])
         
         res.send(200, {message:"Discount deleted!"})
+        }
     })
 })
 
@@ -257,9 +271,16 @@ app.put('/busclass/delete', jsonParser, authenticateToken, authenticateAdmin, (r
             res.send(400,{err:"You must enter idbus_class!"})
             return
         }
+        const busclassExists = await con.promise().query("SELECT 1 FROM bus_class WHERE idbus_class = ?", [req.body.idbus_class]);
+        if (!busclassExists[0].length) {
+            res.status(400).json({ err: "Bus class doesn't exist in the bus_class table" });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE bus_class SET deleted=? WHERE bus_class.idbus_class=?", [1,req.body.idbus_class])
         
         res.send(200, {message:"Bus class deleted!"})
+        }
     })
 })
 
@@ -270,9 +291,16 @@ app.put('/route/delete', jsonParser, authenticateToken, authenticateAdmin, (req,
             res.send(400,{err:"You must enter idroute!"})
             return
         }
+        const routeExists = await con.promise().query("SELECT 1 FROM route WHERE idroute = ?", [req.body.idroute]);
+        if (!routeExists[0].length) {
+            res.status(400).json({ err: "idroute does not exist in the route table." });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE route SET active=? WHERE route.idroute=?", [0,req.body.idroute])
         
         res.send(200, {message:"Route deleted!"})
+        }
     })
 })
 
