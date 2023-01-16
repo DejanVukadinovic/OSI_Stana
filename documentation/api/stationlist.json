@@ -1,18 +1,15 @@
 {
     "req":
     {
-        "iddiscounts":"1"
     },
     "res":
     {
-        "Error":"You must enter iddiscounts!",
-        "Error":"Discount doesn't exist in the discount table",
-        "Message": "Discount deleted!"
+        "Error":"Station details aren't available"
     },
     "header":
     {
-        "path":"/discounts/delete",
+        "path":"/station/list",
         "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
-        "method":"PUT"
+        "method":"GET"
     }
 }
