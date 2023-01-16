@@ -528,6 +528,50 @@ app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, 
     })
 });
 
+app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idstation || !req.body.idstation2){
+            res.send(400,{err:"You must enter both idstation and idstation2!"})
+            return
+        }
+        const [distanceRes] = await con.promise().query("SELECT distance, s1.name as name1, s2.name as name2 FROM distance d join station s1 on d.idstation = s1.idstation join station s2 on d.idstation2 = s2.idstation where (d.idstation = ? and d.idstation2 = ?) or (d.idstation = ? and d.idstation2 = ?)", [req.body.idstation,req.body.idstation2,req.body.idstation2,req.body.idstation])
+
+        if(!distanceRes[0]){
+            res.send(400, {err:"Distance details aren't available"})
+            return
+        }
+        const sendRes={distance_message:`The distance between ${distanceRes[0].name1} and ${distanceRes[0].name2} is ${distanceRes[0].distance}`}
+        res.send(200,sendRes)
+    })
+})
+
+app.get('/distance/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+
+        const [distanceRes] = await con.promise().query("SELECT distance.*, station1.name as station1_name, station2.name as station2_name FROM distance JOIN station as station1 ON distance.idstation = station1.idstation JOIN station as station2 ON distance.idstation2 = station2.idstation")
+        if(!distanceRes[0]){
+            res.send(400, {err:"Distance details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        distanceRes.forEach((distance) => {
+            sendRes.push({
+                station1_name: distance.station1_name,
+                station2_name: distance.station2_name,
+                idstation: distance.idstation,
+                idstation2: distance.idstation2,
+                distance: distance.distance,
+                time_estimate: distance.time_estimate
+            });
+        });
+        res.send(200, sendRes)
+    });
+});
+
+
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3001`)
