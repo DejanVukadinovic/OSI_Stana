@@ -535,16 +535,18 @@ app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdm
             res.send(400,{err:"You must enter both idstation and idstation2!"})
             return
         }
-        const [distanceRes] = await con.promise().query("SELECT distance, s1.name as name1, s2.name as name2 FROM distance d join station s1 on d.idstation = s1.idstation join station s2 on d.idstation2 = s2.idstation where (d.idstation = ? and d.idstation2 = ?) or (d.idstation = ? and d.idstation2 = ?)", [req.body.idstation,req.body.idstation2,req.body.idstation2,req.body.idstation])
+        const [distanceRes] = await con.promise().query("SELECT distance, s1.name as name1, s2.name as name2, d.idstation, d.idstation2 FROM distance d join station s1 on d.idstation = s1.idstation join station s2 on d.idstation2 = s2.idstation where (d.idstation = ? and d.idstation2 = ?) or (d.idstation = ? and d.idstation2 = ?)", [req.body.idstation,req.body.idstation2,req.body.idstation2,req.body.idstation])
 
         if(!distanceRes[0]){
             res.send(400, {err:"Distance details aren't available"})
             return
         }
-        const sendRes={distance_message:`The distance between ${distanceRes[0].name1} and ${distanceRes[0].name2} is ${distanceRes[0].distance}`}
+        const sendRes={idstation: distanceRes[0].idstation, name1: distanceRes[0].name1, idstation2: distanceRes[0].idstation2, name2: distanceRes[0].name2, distance:distanceRes[0].distance}
         res.send(200,sendRes)
     })
 })
+
+
 
 app.get('/distance/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
@@ -571,6 +573,74 @@ app.get('/distance/list', jsonParser, authenticateToken, authenticateAdmin, (req
     });
 });
 
+app.post('/bus', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        if(!req.body.seats){
+            res.send(400,{err:"You must enter number of seats!"})
+            return
+        }
+        else if(!req.body.carrier){
+            res.send(400,{err:"You must enter carrier!"})
+            return
+        }
+        else if(!req.body.idbus_class){
+            res.send(400,{err:"You must enter idbus_class!"})
+            return
+        }
+        const busclassExists = await con.promise().query("SELECT 1 FROM bus_class WHERE idbus_class = ?", [req.body.idbus_class]);
+        if (!busclassExists[0].length) {
+            res.status(400).json({ err: "That bus class does not exist" });
+            return;
+        }
+        else{
+        console.log(req.body)
+        await con.promise().query("INSERT INTO bus(seats,is_working,carrier,idbus_class) VALUES(?,?,?,?)", [req.body.seats,1,req.body.carrier,req.body.idbus_class])
+        
+        res.send(200, {message:"Bus details have been set!"})
+        }
+    })
+})
+
+app.post('/station/create', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        if(!req.body.name){
+            res.send(400,{err:"You must enter station name!"})
+            return
+        }
+        else if(!req.body.country){
+            res.send(400,{err:"You must enter station country!"})
+            return
+        }
+        console.log(req.body)
+        await con.promise().query("INSERT INTO station(name,country,deleted) VALUES(?,?,?)", [req.body.name,req.body.country,0])
+        
+        res.send(200, {message:"Station has been set!"})
+    })
+})
+
+app.put('/station/delete', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idstation){
+            res.send(400,{err:"You must enter idstation!"})
+            return
+        }
+        const stationExists = await con.promise().query("SELECT 1 FROM station WHERE idstation = ?", [req.body.idstation]);
+        if (!stationExists[0].length) {
+            res.status(400).json({ err: "Station with that id doesn't exist" });
+            return;
+        }
+        else{
+        await con.promise().query("UPDATE station SET deleted=? WHERE station.idstation=?", [1,req.body.idstation])
+        
+        res.send(200, {message:"Station deleted!"})
+        }
+    })
+})
 
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
