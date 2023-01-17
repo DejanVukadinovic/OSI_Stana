@@ -921,6 +921,7 @@ crow::json::wvalue password_change(const std::string username,const std::string 
 int main()
 {
 	crow::SimpleApp app;
+	
 	CROW_ROUTE(app, "/list").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
@@ -942,7 +943,7 @@ int main()
 			resp.add_header("Access-Control-Allow-Origin", "*");
 			return resp;
 		});
-		CROW_ROUTE(app, "/register").methods("POST"_method)([](const crow::request& req)
+		CROW_ROUTE(app, "/register").methods("GET"_method)([](const crow::request& req)
 		{
 			crow::query_string params = req.url_params;
 			const std::string username = params.get("username");

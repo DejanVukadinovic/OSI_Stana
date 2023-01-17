@@ -1,10 +1,19 @@
-function RegisterForm() {
+import axios from "axios"
+function RegisterForm({type}) {
     let register = (e)=>{
         e.preventDefault()
+        const user_type = type || "passenger"
         const data = new FormData(e.target);
+        const body = {user_type}
         for (const [name,value] of data) {
             console.log(name, ":", value)
+            body[name]=value;
           }
+        axios.post("http://127.0.0.1:3002/register", body).then(res=>{
+          console.log(res)
+          window.location.reload()
+        })
+        
         }
     return (  <form onSubmit={register} className="flex flex-col justify-center text-2xl">
     <label htmlFor="name">Name</label>

@@ -8,12 +8,14 @@ const fs = require('fs');
 const axios = require('axios');
 const FormData = require('form-data');
 const Mustache = require('mustache');
-const bodyParser = require('body-parser')
 const cors = require("cors")
 var crypto = require('crypto');
 const {LOGIN_LIMIT}=require('./params')
 const PORT = 3000;
 const HOST = '0.0.0.0'
+const bodyParser = require("body-parser")
+
+const jsonParser = bodyParser.json();
 
 let con = mysql.createConnection({
     host:process.env.DB_HOST,
@@ -21,8 +23,6 @@ let con = mysql.createConnection({
     password:process.env.DB_PASSWORD,
     database: process.env.DB_NAME
 })
-
-const jsonParser = bodyParser.json()
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']

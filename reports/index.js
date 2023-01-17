@@ -8,6 +8,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const Mustache = require('mustache');
 const bodyParser = require('body-parser')
+const cors  =require('cors')
 
 const HOST = "0.0.0.0"
 const PORT = 3000
@@ -35,7 +36,7 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
   
-    if (token == null) return res.send(req.headers)
+    if (token == null) return res.send(400, {err:"Authentication required"})
   
     jwt.verify(token, process.env.JWT_KEY, (err, user) => {
       console.log(err)
@@ -49,6 +50,8 @@ function authenticateToken(req, res, next) {
   }
 
 let app = express()
+
+app.use(cors())
 
 app.get('/', (req, res)=>{
     res.send("Hello world!!")
@@ -76,7 +79,7 @@ app.post('/report/create', jsonParser, authenticateToken, (req, res)=>{
             route: req.body.route,
             date:JSON.stringify(resp[0].time).split("T")[0].slice(1),
             time:JSON.stringify(resp[0].time).split("T")[1].slice(0, -6),
-            user:req.user.user,
+            user:req.user.username,
             content:req.body.content
           }
           // Read the HTML template from disk.
@@ -99,7 +102,7 @@ app.post('/report/create', jsonParser, authenticateToken, (req, res)=>{
     })
 })
 
-app.get("/reports", (req, res)=>{
+app.get("/reports", authenticateToken, (req, res)=>{
     con.connect( async function(err){
         if(err) {res.send(500);throw err};
         const [report] = await con.promise().query("SELECT report.idreport, report.idroute FROM report")
