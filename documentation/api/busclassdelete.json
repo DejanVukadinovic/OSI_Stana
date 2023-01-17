@@ -6,7 +6,7 @@
     "res":
     {
         "Error":"You must enter idbus_class!",
-        "Error":"Bus class doesn't exist in the bus_class table",
+        "Error":"Bus class with that id doesn't exist",
         "Message": "Bus class deleted!"
     },
     "header":
