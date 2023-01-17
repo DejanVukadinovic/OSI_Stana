@@ -1,15 +1,17 @@
 import axios from "axios"
-function RegisterForm() {
+function RegisterForm({type}) {
     let register = (e)=>{
         e.preventDefault()
+        const user_type = type || "passenger"
         const data = new FormData(e.target);
-        const params = {user_type:"passenger"}
+        const body = {user_type}
         for (const [name,value] of data) {
             console.log(name, ":", value)
-            params[name]=value;
+            body[name]=value;
           }
-        axios.get("http://127.0.0.1:3002/register", {params}).then(res=>{
+        axios.post("http://127.0.0.1:3002/register", body).then(res=>{
           console.log(res)
+          window.location.reload()
         })
         
         }

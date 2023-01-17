@@ -9,6 +9,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const Mustache = require('mustache');
 const bodyParser = require('body-parser')
+const cors = require("cors")
 
 const PORT = 3000;
 const HOST = '0.0.0.0'
@@ -30,7 +31,7 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
   
-    if (token == null) return res.send(req.headers)
+    if (token == null) return res.send(400, {err:"Authentication required"})
   
     jwt.verify(token, process.env.JWT_KEY, (err, user) => {
       console.log(err)
@@ -42,16 +43,28 @@ function authenticateToken(req, res, next) {
       next()
     })
   }
+  function authenticatePassenger(req, res, next) {
+    con.connect(async function(err){
+        if(err) throw err;
+        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.username])
+        console.log(typeRes[0])
+        if(typeRes[0].user_type!=2){res.send(403)}
+        next()
+    })
+  }
 
 const app = express()
+
 app.get('/', (req, res)=>{
     res.send("Hello world!!")
 })
-app.post('/ticket/create', jsonParser, authenticateToken, (req, res)=>{
+app.use(cors())
+app.use(bodyParser.json())
+app.post('/ticket/create', jsonParser, authenticateToken, authenticatePassenger, (req, res)=>{
     con.connect(async function(err) {
         if(err) throw err;
-        
-        const [userRes] = await con.promise().query("SELECT * FROM user NATURAL JOIN bank_account NATURAL JOIN passenger where username = ?", [req.user.user])
+        console.log(req.user)
+        const [userRes] = await con.promise().query("SELECT * FROM user NATURAL JOIN bank_account NATURAL JOIN passenger where username = ?", [req.user.username])
         const [routeRes] = await con.promise().query("SELECT * FROM route NATURAL JOIN route_has_bus NATURAL JOIN bus NATURAL JOIN bus_class WHERE idroute = ?", [req.body.route])
         let isAvaliable = (routeRes[0].seats-routeRes[0].tickets_sold>req.body.nTickets);
         let canBuy = false
@@ -99,8 +112,8 @@ app.post('/ticket/create', jsonParser, authenticateToken, (req, res)=>{
                     })();
                     
                 }res.send({"ticket":ticketList})
-            }else{res.send("Not enough money")}
-        }else{res.send("Not avaliable")}
+            }else{res.send({err:"Not enough money"})}
+        }else{res.send({err:"Not avaliable"})}
     })
     //res.send("CREATING TICKET")
 })
@@ -108,7 +121,7 @@ app.post('/ticket/create', jsonParser, authenticateToken, (req, res)=>{
 app.get("/tickets", authenticateToken, (req, res)=>{
     con.connect( async function(err){
         if(err) {res.send(500);throw err};
-        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.user])
+        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.username])
         res.send(tickets)
     })
 })

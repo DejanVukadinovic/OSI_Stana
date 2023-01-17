@@ -36,7 +36,7 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
   
-    if (token == null) return res.send(req.headers)
+    if (token == null) return res.send(400, {err:"Authentication required"})
   
     jwt.verify(token, process.env.JWT_KEY, (err, user) => {
       console.log(err)
@@ -79,7 +79,7 @@ app.post('/report/create', jsonParser, authenticateToken, (req, res)=>{
             route: req.body.route,
             date:JSON.stringify(resp[0].time).split("T")[0].slice(1),
             time:JSON.stringify(resp[0].time).split("T")[1].slice(0, -6),
-            user:req.user.user,
+            user:req.user.username,
             content:req.body.content
           }
           // Read the HTML template from disk.

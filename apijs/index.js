@@ -54,7 +54,9 @@ function authenticateToken(req, res, next) {
     })
   }
 
-const app = express()
+  const app = express()
+  app.use(cors())
+  app.use(bodyParser.json())
 app.get('/', (req, res)=>{
     res.send("Hello world!!")
 })

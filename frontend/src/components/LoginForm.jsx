@@ -2,7 +2,7 @@ import axios from "axios"
 import { useSelector, useDispatch } from "react-redux";
 import { login, logout } from "../redux/user/userActions";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { json, useNavigate } from "react-router-dom";
 function LoginForm() {
     const user = useSelector(state => state.user.user)
     const dispatch = useDispatch();
@@ -16,14 +16,15 @@ function LoginForm() {
           username:data.get("username"),
           password:data.get("password")
         }
-        axios.get(`http://localhost:3002/login`, 
-        {params}).then(res=>{
+        axios.put(`http://localhost:3002/login`,
+        params).then(res=>{
           if(!res.data.login){
             console.log("error: ", res.data)
             seterror(res.data)
           }else {
             seterror("")
             dispatch(login(res.data))
+            localStorage.setItem("user",JSON.stringify(res.data))
             navigate("/home")
           }})
           }

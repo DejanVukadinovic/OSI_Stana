@@ -11,8 +11,6 @@ function LandingPage() {
         e.preventDefault();
         console.log("Whatever")
         setForm(!Form)
-        const headers = {Authorization: "Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.kviVZyJR6-0BtGQa3135RnvedjNW_MBrYLOe4pxwUQ4"}
-        axios.get("http://127.0.0.1:3002/list", {headers}).then(res=>console.log(res))
       }
 
 
