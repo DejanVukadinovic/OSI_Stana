@@ -541,7 +541,7 @@ app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdm
             res.send(400, {err:"Distance details aren't available"})
             return
         }
-        const sendRes={idstation: distanceRes[0].idstation, idstation2: distanceRes[0].idstation2,distance:distanceRes[0].distance}
+        const sendRes={idstation: distanceRes[0].idstation, name1: distanceRes[0].name1, idstation2: distanceRes[0].idstation2, name2: distanceRes[0].name2, distance:distanceRes[0].distance}
         res.send(200,sendRes)
     })
 })
