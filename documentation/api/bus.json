@@ -1,0 +1,22 @@
+{
+    "req":
+    {
+        "seats":"45",
+        "carrier":"prevoz",
+        "idbus_class":"1"
+    },
+    "res":
+    {
+        "Error":"You must enter number of seats!",
+        "Error":"You must enter carrier!",
+        "Error":"You must enter idbus_class!",
+        "Error":"That bus class does not exist",
+        "Message": "Bus details have been set!"
+    },
+    "header":
+    {
+        "path":"/bus",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
+        "method":"POST"
+    }
+}
