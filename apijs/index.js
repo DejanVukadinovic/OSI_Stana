@@ -106,7 +106,7 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
             const [distanceRes]=await con.promise().query("SELECT * FROM distance")
             let distanceTotal =0;
             let timeTotal=0;
-            var timeless = []
+            let timeless = []
             for (let i = 0; i < req.body.stations.length-1; i++) {
                 let idf = req.body.stations[i]
                 let ids = req.body.stations[i+1]
@@ -129,15 +129,21 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
                 });  
               }
               const avgVel = parseFloat(distanceTotal/timeTotal);
-              //console.log(avgVel)
+              console.log(avgVel)
               timeless.forEach(el=>{
-                //timeTotal+=parseFloat(el.distance/avgVel)
+                timeTotal+=parseFloat(el.distance/avgVel)
                 console.log(timeTotal)
-               // distanceTotal+=parseFloat(el.distance)
+                distanceTotal+=parseFloat(el.distance)
                 console.log(distanceTotal)
               })
-              let duration=req.body.duration
-              if( timeTotal>parseFloat(req.body.duration))duration=timeTotal
+              let duration
+              if(!req.body.duration){
+                duration=0
+              }
+              else{
+                duration=parseFloat(req.body.duration)
+              }
+              if( timeTotal>duration)duration=parseFloat(timeTotal)
               let price;
               if(!req.body.price) price=parseFloat(distanceTotal)*PRICE_COEFFICIENT
               else price=req.body.price
