@@ -593,6 +593,24 @@ app.put('/station/delete', jsonParser, authenticateToken, authenticateAdmin, (re
     })
 })
 
+app.post('/distance/create', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+    con.connect(async function(err) {
+        if (err) throw err;
+        console.log(req.body);
+        if (!req.body.idstation || !req.body.idstation2 || !req.body.distance || !req.body.time_estimate) {
+            res.send(400, {err: "You must enter all required fields, idstation, idstation2, distance and time estimate"})
+            return;
+        }
+        const [stations] = await con.promise().query("SELECT s1.idstation, s2.idstation FROM station s1 JOIN station s2 ON s1.idstation = ? AND s2.idstation = ? WHERE s1.deleted = 0 AND s2.deleted = 0", [req.body.idstation, req.body.idstation2]);
+        if (stations.length === 0) {
+            res.send(400, {err: "One or both of the stations are deleted."});
+        } else {
+            await con.promise().query("INSERT INTO distance(idstation, idstation2, distance, time_estimate) VALUES (?,?,?,?)", [req.body.idstation, req.body.idstation2, req.body.distance, req.body.time_estimate]);
+            res.send(200, {message: "Distance has been set!"});
+        }
+    });
+});
+
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3001`)
