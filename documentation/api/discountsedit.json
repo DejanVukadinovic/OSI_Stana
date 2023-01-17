@@ -8,6 +8,7 @@
     {
         "Error":"You must enter coefficient!",
         "Error":"You must enter iddiscounts!",
+        "Error":"Discount with that id doesn't exist",
         "Message": "Discount changed!"
     },
     "header":

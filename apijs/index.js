@@ -180,9 +180,16 @@ app.put('/discounts/edit', jsonParser, authenticateToken, authenticateAdmin, (re
             res.send(400,{err:"You must enter iddiscounts!"})
             return
         }
+        const discountExists = await con.promise().query("SELECT 1 FROM discounts WHERE iddiscounts = ?", [req.body.iddiscounts]);
+        if (!discountExists[0].length) {
+            res.status(400).json({ err: "Discount with that id doesn't exist" });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE discounts SET coefficient=? WHERE discounts.iddiscounts=?", [req.body.coefficient,req.body.iddiscounts])
         
         res.send(200, {message:"Discount changed!"})
+        }
     })
 })
 
@@ -193,9 +200,16 @@ app.put('/discounts/delete', jsonParser, authenticateToken, authenticateAdmin, (
             res.send(400,{err:"You must enter iddiscounts!"})
             return
         }
+        const discountExists = await con.promise().query("SELECT 1 FROM discounts WHERE iddiscounts = ?", [req.body.iddiscounts]);
+        if (!discountExists[0].length) {
+            res.status(400).json({ err: "Discount with that id doesn't exist" });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE discounts SET deleted=? WHERE discounts.iddiscounts=?", [1,req.body.iddiscounts])
         
         res.send(200, {message:"Discount deleted!"})
+        }
     })
 })
 
@@ -206,9 +220,16 @@ app.put('/busclass/delete', jsonParser, authenticateToken, authenticateAdmin, (r
             res.send(400,{err:"You must enter idbus_class!"})
             return
         }
+        const busclassExists = await con.promise().query("SELECT 1 FROM bus_class WHERE idbus_class = ?", [req.body.idbus_class]);
+        if (!busclassExists[0].length) {
+            res.status(400).json({ err: "Bus class with that id doesn't exist" });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE bus_class SET deleted=? WHERE bus_class.idbus_class=?", [1,req.body.idbus_class])
         
         res.send(200, {message:"Bus class deleted!"})
+        }
     })
 })
 
@@ -219,9 +240,16 @@ app.put('/route/delete', jsonParser, authenticateToken, authenticateAdmin, (req,
             res.send(400,{err:"You must enter idroute!"})
             return
         }
+        const routeExists = await con.promise().query("SELECT 1 FROM route WHERE idroute = ?", [req.body.idroute]);
+        if (!routeExists[0].length) {
+            res.status(400).json({ err: "Route with that id doesn't exist" });
+            return;
+        }
+        else{
         await con.promise().query("UPDATE route SET active=? WHERE route.idroute=?", [0,req.body.idroute])
         
         res.send(200, {message:"Route deleted!"})
+        }
     })
 })
 
@@ -354,6 +382,144 @@ app.put('/bus/activate', jsonParser, authenticateToken, authenticateAdmin, (req,
         res.send(200,{message: "Bus is_working value has been set to 1!"})
     })
 });
+
+app.get('/route/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        const [userRes]=await con.promise().query("SELECT * FROM route")
+        if(!userRes[0]){
+            res.send(400, {err:"Route details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((route) => {
+            sendRes.push({
+                idroute: route.idroute,
+                name: route.name,
+                price: route.price,
+                repeat: route.repeat,
+                time: route.time,
+                duration: route.duration,
+                tickets_sold: route.tickets_sold,
+                active: route.active
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
+app.get('/station/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        const [userRes]=await con.promise().query("SELECT * FROM station")
+        if(!userRes[0]){
+            res.send(400, {err:"Station details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((station) => {
+            sendRes.push({
+                idstation: station.idstation,
+                name: station.name,
+                country: station.country,
+                deleted: station.deleted
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
+app.get('/route/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idroute){
+            res.send(400,{err:"You must enter idroute!"})
+            return
+        }
+        const [userRes] = await con.promise().query("SELECT * FROM route where idroute = ?", [req.body.idroute])
+        if(!userRes[0]){
+            res.send(400, {err:"Route details aren't available"})
+            return
+        }
+        const sendRes={idroute:userRes[0].idroute,name:userRes[0].name,price:userRes[0].price,repeat:userRes[0].repeat,time:userRes[0].time,duration:userRes[0].duration,tickets_sold:userRes[0].tickets_sold,active:userRes[0].active}
+        res.send(200,sendRes)
+        
+    })
+})
+
+app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        const [userRes]=await con.promise().query("SELECT * FROM route WHERE active = 1")
+        if(!userRes[0]){
+            res.send(400, {err:"Route details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((route) => {
+            sendRes.push({
+                idroute: route.idroute,
+                name: route.name,
+                price: route.price,
+                repeat: route.repeat,
+                time: route.time,
+                duration: route.duration,
+                tickets_sold: route.tickets_sold,
+                active: route.active
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
+app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        if(!req.body.idstation || !req.body.idstation2){
+            res.send(400,{err:"You must enter both idstation and idstation2!"})
+            return
+        }
+        const [distanceRes] = await con.promise().query("SELECT distance, s1.name as name1, s2.name as name2 FROM distance d join station s1 on d.idstation = s1.idstation join station s2 on d.idstation2 = s2.idstation where (d.idstation = ? and d.idstation2 = ?) or (d.idstation = ? and d.idstation2 = ?)", [req.body.idstation,req.body.idstation2,req.body.idstation2,req.body.idstation])
+
+        if(!distanceRes[0]){
+            res.send(400, {err:"Distance details aren't available"})
+            return
+        }
+        const sendRes={distance_message:`The distance between ${distanceRes[0].name1} and ${distanceRes[0].name2} is ${distanceRes[0].distance}`}
+        res.send(200,sendRes)
+    })
+})
+
+app.get('/distance/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+
+        const [distanceRes] = await con.promise().query("SELECT distance.*, station1.name as station1_name, station2.name as station2_name FROM distance JOIN station as station1 ON distance.idstation = station1.idstation JOIN station as station2 ON distance.idstation2 = station2.idstation")
+        if(!distanceRes[0]){
+            res.send(400, {err:"Distance details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        distanceRes.forEach((distance) => {
+            sendRes.push({
+                station1_name: distance.station1_name,
+                station2_name: distance.station2_name,
+                idstation: distance.idstation,
+                idstation2: distance.idstation2,
+                distance: distance.distance,
+                time_estimate: distance.time_estimate
+            });
+        });
+        res.send(200, sendRes)
+    });
+});
+
 
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
