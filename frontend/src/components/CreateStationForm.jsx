@@ -1,9 +1,18 @@
 import axios from "axios"
 function CreateStationForm() {
+    const user = JSON.parse(localStorage.getItem("user"))
+    const headers = {Authorization: "Token "+user?.token, "Content-Type":"application/json"}
     const createStation = (e)=>{
         e.preventDefault()
         const fdata = new FormData(e.target)
-        console.log(fdata.get("name"), fdata.get("country"))
+        const sdata={
+            name:fdata.get("name"),
+            country:fdata.get("country")
+        }
+        axios.post("http://127.0.0.1:3001/station/create", sdata, {headers} ).then(res=>{
+            console.log(res)
+            window.location.reload()
+        })
     }
     return ( 
     <form onSubmit={createStation} className="flex flex-col justify-center text-2xl">
