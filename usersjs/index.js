@@ -99,23 +99,33 @@ app.get('/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         const [userRes] = await con.promise().query("SELECT * FROM user")
+        const [driverRes] = await con.promise().query("SELECT * FROM driver")
+        const [passengerRes] = await con.promise().query("SELECT * FROM passenger")
         let mappedRes = userRes.filter(el=>!el.deleted)
         mappedRes = mappedRes.map(element=>{
-            
             let user_type = "unsuported";
+            let suspended = "not possible to suspend";
             if(element.user_type==0)user_type="admin"
-            else if(element.user_type==1)user_type="driver"
-            else if(element.user_type==2)user_type="passenger"
+            else if(element.user_type==1){
+                user_type="driver"
+                const driver = driverRes.find(driver => driver.iduser === element.iduser);
+                if (driver) suspended = driver.suspended;
+            }
+            else if(element.user_type==2){
+                user_type="passenger"
+                const passenger = passengerRes.find(passenger => passenger.iduser === element.iduser);
+                if (passenger) suspended = passenger.suspended;
+            }
             return{
                 iduser:element.iduser,
                 name:element.name,
                 username:element.username,
-                user_type:user_type
+                user_type:user_type,
+                suspended:suspended
             }
         })
-        
         console.log(mappedRes)
-        res.send(200, mappedRes)
+        res.send(200,mappedRes)
     })
 })
 
@@ -132,7 +142,8 @@ app.get('/list/drivers', jsonParser, authenticateToken, authenticateAdmin, (req,
                 iddriver:element.iddriver,
                 name:element.name,
                 username:element.username,
-                suspended
+                suspended,
+                user_type:"driver"
             }
         })
         
@@ -155,7 +166,8 @@ app.get('/list/passengers', jsonParser, authenticateToken, authenticateAdmin, (r
                 idpassenger:element.idpassenger,
                 name:element.name,
                 username:element.username,
-                suspended
+                suspended,
+                user_type:"passenger"
             }
         })
         
