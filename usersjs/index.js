@@ -43,7 +43,7 @@ function authenticateToken(req, res, next) {
 function authenticateAdmin(req, res, next) {
     con.connect(async function(err){
         if(err) throw err;
-        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.user])
+        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.username])
         if(typeRes[0]){res.send(403)}
         next()
     })

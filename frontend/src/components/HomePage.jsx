@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import RouteCard from "./RouteCard";
+import RouteAdminBar from "./RouteAdminBar"
 
 function HomePage() {
     const user = JSON.parse(localStorage.getItem("user"))
@@ -25,7 +26,8 @@ function HomePage() {
     
     return ( <div className="flex flex-col" style={{minHeight:"100vh"}}>
         <Navbar />
-        <div className="flex-grow p-4 flex flex-col">
+        <RouteAdminBar />
+        <div className="flex-grow px-4 py-2 flex flex-col">
             {Res}
         </div>
         <Footer />

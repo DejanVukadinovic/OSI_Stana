@@ -48,7 +48,7 @@ function authenticateToken(req, res, next) {
   function authenticateAdmin(req, res, next) {
     con.connect(async function(err){
         if(err) throw err;
-        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.user])
+        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.username])
         if(typeRes[0]){res.send(403)}
         next()
     })
@@ -70,7 +70,7 @@ app.post('/ticket/create', jsonParser, authenticateToken, (req, res)=>{
 app.get("/tickets", authenticateToken, (req, res)=>{
     con.connect( async function(err){
         if(err) {res.send(500);throw err};
-        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.user])
+        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.username])
         res.send(tickets)
     })
 })
