@@ -91,16 +91,18 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
             res.send(400,{err:"You must enter route stations."})
             return
         }
-        
+        else{
+            let flag=1
         for (let i = 0; i < req.body.stations.length; i++) {
             const [stationRes]=await con.promise().query("SELECT * FROM station WHERE station.idstation=?",[req.body.stations[i]])
             if(!stationRes[0]){
+                 flag=0
                 res.send(400,{err:"All used stations must be defined."}) 
                 return
             }
           }
-
         
+         if(flag){
             const [distanceRes]=await con.promise().query("SELECT * FROM distance")
             let distanceTotal =0;
             let timeTotal=0;
@@ -113,27 +115,35 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
                 distanceRes.forEach(element => {
                     let {idstation, idstation2, distance, time_estimate} = element
                     if ((idf==idstation && ids==idstation2)||(idf==idstation2 && ids==idstation)){
-                        dist = distance;
-                        timedur = time_estimate
-                        
+                        dist = parseFloat(distance);
+                        timedur = parseFloat(time_estimate)
+                    
+
                     if(timedur){
                         timeTotal+=parseFloat(timedur)
                         distanceTotal+=parseFloat(dist)
-                        console.log(timeTotal)
-                        console.log(distanceTotal)
                     }else{
                         timeless.push(element)
                     }
                 }
                 });  
               }
-              const avgVel = distanceTotal/timeTotal;
+              const avgVel = parseFloat(distanceTotal/timeTotal);
+              console.log(avgVel)
               timeless.forEach(el=>{
-                timeTotal+=el.distance*avgVel
-                distanceTotal+=el.distance
+                timeTotal+=parseFloat(el.distance/avgVel)
+                console.log(timeTotal)
+                distanceTotal+=parseFloat(el.distance)
+                console.log(distanceTotal)
               })
-              let duration=req.body.duration
-              if( timeTotal>req.body.duration)duration=timeTotal
+              let duration
+              if(!req.body.duration){
+                duration=0
+              }
+              else{
+                duration=parseFloat(req.body.duration)
+              }
+              if( timeTotal>duration)duration=parseFloat(timeTotal)
               let price;
               if(!req.body.price) price=parseFloat(distanceTotal)*PRICE_COEFFICIENT
               else price=req.body.price
@@ -146,11 +156,14 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
               await con.promise().query("INSERT INTO station_has_route(idstation,idroute,order_num) VALUES(?,?,?)",
               [req.body.stations[i],routeID[0].idroute,i+1])
               }
-             
-              
+
+              res.send(200,{message:"Route registered."})
+            }
+            }
+
         })
-        res.send(200,{message:"Route registered."})
-        
+       //res.send(200,{message:"Route registered."})
+
 })
 
 app.get('/bus/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
@@ -592,6 +605,24 @@ app.put('/station/delete', jsonParser, authenticateToken, authenticateAdmin, (re
         }
     })
 })
+
+app.post('/distance/create', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+    con.connect(async function(err) {
+        if (err) throw err;
+        console.log(req.body);
+        if (!req.body.idstation || !req.body.idstation2 || !req.body.distance || !req.body.time_estimate) {
+            res.send(400, {err: "You must enter all required fields, idstation, idstation2, distance and time estimate"})
+            return;
+        }
+        const [stations] = await con.promise().query("SELECT s1.idstation, s2.idstation FROM station s1 JOIN station s2 ON s1.idstation = ? AND s2.idstation = ? WHERE s1.deleted = 0 AND s2.deleted = 0", [req.body.idstation, req.body.idstation2]);
+        if (stations.length === 0) {
+            res.send(400, {err: "One or both of the stations are deleted."});
+        } else {
+            await con.promise().query("INSERT INTO distance(idstation, idstation2, distance, time_estimate) VALUES (?,?,?,?)", [req.body.idstation, req.body.idstation2, req.body.distance, req.body.time_estimate]);
+            res.send(200, {message: "Distance has been set!"});
+        }
+    });
+});
 
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
