@@ -447,14 +447,15 @@ app.get('/available_drivers', jsonParser, authenticateToken, authenticateAdmin, 
         });
 
         if(unavailableDrivers.length){
-            const [driverRes] = await con.promise().query("SELECT iddriver, iduser, suspended FROM driver WHERE suspended = 0 AND iddriver NOT IN (?)", [unavailableDrivers]);
+            const [driverRes] = await con.promise().query("SELECT driver.iddriver, driver.iduser, driver.suspended, user.name, user.username FROM driver INNER JOIN user ON driver.iduser = user.iduser WHERE driver.suspended = 0 AND driver.iddriver NOT IN (?)", [unavailableDrivers]);
             res.send(200, driverRes);
         }else{
-            const [driverRes] = await con.promise().query("SELECT iddriver, iduser, suspended FROM driver WHERE suspended = 0");
+            const [driverRes] = await con.promise().query("SELECT driver.iddriver, driver.iduser, driver.suspended, user.name, user.username FROM driver INNER JOIN user ON driver.iduser = user.iduser WHERE driver.suspended = 0");
             res.send(200, driverRes);
         }
     });
 });
+
 
 
 app.listen(PORT, HOST);

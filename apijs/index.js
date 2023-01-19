@@ -703,6 +703,29 @@ app.post('/route/set_discount', jsonParser, authenticateToken, authenticateAdmin
     });
 });
 
+app.get('/busclass/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        const [userRes]=await con.promise().query("SELECT * FROM bus_class")
+        if(!userRes[0]){
+            res.send(400, {err:"Bus class details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((bus_class) => {
+            sendRes.push({
+                idbus_class: bus_class.idbus_class,
+                description: bus_class.description,
+                price_coefficient: bus_class.price_coefficient,
+                deleted: bus_class.deleted
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3001`)
