@@ -624,6 +624,35 @@ app.post('/distance/create', jsonParser, authenticateToken, authenticateAdmin, (
     });
 });
 
+app.post('/route/set_bus', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+    con.connect(async function (err) {
+        if (err) throw err;
+        if (!req.body.idroute) {
+            res.status(400).json({ err: "You must enter idroute!" });
+            return;
+        } else if (!req.body.idbus) {
+            res.status(400).json({ err: "You must enter idbus!" });
+            return;
+        }
+
+        const routeExists = await con.promise().query("SELECT 1 FROM route WHERE idroute = ?", [req.body.idroute]);
+        if (!routeExists[0].length) {
+            res.status(400).json({ err: "Entered route does not exist!" });
+            return;
+        }
+
+        const busExists = await con.promise().query("SELECT 1 FROM bus WHERE idbus = ?", [req.body.idbus]);
+        if (!busExists[0].length) {
+            res.status(400).json({ err: "Entered bus does not exist!" });
+            return;
+        }
+
+        await con.promise().query("INSERT INTO route_has_bus (idroute,idbus) VALUES (?,?)", [req.body.idroute, req.body.idbus]);
+
+        res.send(200,{ message: "Bus has been set to the route!" });
+    });
+});
+
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3001`)
