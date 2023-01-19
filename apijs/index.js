@@ -75,7 +75,7 @@ app.get("/tickets", authenticateToken, (req, res)=>{
     })
 })
 
-
+//idbus,iddriver,iddiscount
 app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
@@ -89,6 +89,10 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
         }
         else if(!req.body.stations.length){
             res.send(400,{err:"You must enter route stations."})
+            return
+        }
+        else if(!req.body.price && !req.body.idbus){
+            res.send(400,{err:"You must enter price or bus."})
             return
         }
         else{
@@ -145,24 +149,39 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
               }
               if( timeTotal>duration)duration=parseFloat(timeTotal)
               let price;
-              if(!req.body.price) price=parseFloat(distanceTotal)*PRICE_COEFFICIENT
-              else price=req.body.price
+              if(req.body.price){ 
+                price=parseFloat(req.body.price)
+              }
+              else{
+                const [busRes]=await con.promise().query("SELECT * FROM bus WHERE bus.idbus=?",[req.body.idbus])
+                const [classRes]=await con.promise().query("SELECT * FROM bus_class WHERE bus_class.idbus_class=?",[busRes[0].idbus_class])
+                price=parseFloat(classRes[0].price_coefficient*distanceTotal)
+
+              }
               let repetition=req.body.repetition?req.body.repetition:0
-              await con.promise().query("INSERT INTO route(name,price,repetition,time,duration,tickets_sold,active) VALUES(?,?,?,?,?,?,?)",
-              [req.body.name,price,repetition,req.body.time,duration,0,1])
-              let i=0
+              await con.promise().query("INSERT INTO route(name,price,repetition,time,duration,tickets_sold,active) VALUES(?,?,?,?,?,?,?)",[req.body.name,price,repetition,req.body.time,duration,0,1])
               const [routeID]=await con.promise().query("SELECT * FROM route WHERE idroute=(SELECT max(idroute) FROM route);")
+
+              let i=0
               for (let i = 0; i < req.body.stations.length; i++){
               await con.promise().query("INSERT INTO station_has_route(idstation,idroute,order_num) VALUES(?,?,?)",
               [req.body.stations[i],routeID[0].idroute,i+1])
               }
+              if(req.body.iddriver){
+                await con.promise().query("INSERT INTO route_has_driver(iddriver,idroute) VALUES(?,?)",[req.body.iddriver,routeID[0].idroute])
+              }
+              if(req.body.iddiscount){
+                await con.promise().query("INSERT INTO route_has_discounts(idroute,iddiscounts) VALUES(?,?)",[routeID[0].idroute,req.body.iddiscount])
+              }
+              if(req.body.idbus){
+                await con.promise().query("INSERT INTO route_has_bus(idroute,idbus) VALUES(?,?)",[routeID[0].idroute,req.body.idbus])
 
+              }
               res.send(200,{message:"Route registered."})
             }
             }
 
         })
-       //res.send(200,{message:"Route registered."})
 
 })
 
