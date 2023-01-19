@@ -726,6 +726,71 @@ app.get('/busclass/list', jsonParser, authenticateToken, authenticateAdmin, (req
     })
 });
 
+app.get('/available_buses', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+    con.connect(async function(err) {
+        if (err) throw err;
+        if (!req.body.time) {
+            res.status(400).json({ err: "You must enter time!" });
+            return;
+        } else if (!req.body.duration) {
+            res.status(400).json({ err: "You must enter duration!" });
+            return;
+        }
+        let availableBuses = new Set();
+
+        const [routeRes] = await con.promise().query("SELECT route_has_bus.idroute, idbus FROM route_has_bus INNER JOIN route ON route_has_bus.idroute = route.idroute WHERE route.time = ?", [req.body.time]);
+
+        let unavailableBuses = [];
+        routeRes.forEach((route) => {
+            unavailableBuses.push(route.idbus);
+        });
+
+        const [routeRes2] = await con.promise().query("SELECT route_has_bus.idroute, idbus FROM route_has_bus INNER JOIN route ON route_has_bus.idroute = route.idroute WHERE DATE_ADD(route.time, INTERVAL route.duration HOUR) < ?" ,[req.body.time]);
+
+        routeRes2.forEach((route) => {
+            availableBuses.add(route.idbus);
+        });
+
+        const [routeRes3] = await con.promise().query("SELECT route_has_bus.idroute, idbus FROM route_has_bus INNER JOIN route ON route_has_bus.idroute = route.idroute WHERE DATE_ADD(?, INTERVAL ? HOUR) < route.time", [req.body.time, req.body.duration]);
+
+        routeRes3.forEach((route) => {
+            availableBuses.add(route.idbus);
+        });
+
+        if(unavailableBuses.length){
+            const [busesRes] = await con.promise().query("SELECT bus.idbus, bus.seats, bus.is_working, bus.carrier, bus.idbus_class, bus_class.description, bus_class.price_coefficient, bus_class.deleted FROM bus INNER JOIN bus_class ON bus.idbus_class = bus_class.idbus_class WHERE bus.is_working = 1 AND bus.idbus NOT IN (?)", [unavailableBuses]);
+            res.send(200, busesRes);
+        }else{
+            const [busesRes] = await con.promise().query("SELECT bus.idbus, bus.seats, bus.is_working, bus.carrier, bus.idbus_class, bus_class.description, bus_class.price_coefficient, bus_class.deleted FROM bus INNER JOIN bus_class ON bus.idbus_class = bus_class.idbus_class WHERE bus.is_working = 1");
+            res.send(200, busesRes);
+        }
+    });
+});
+
+app.get('/discounts/list', jsonParser, authenticateToken, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        console.log(req.body)
+        const [userRes]=await con.promise().query("SELECT * FROM discounts")
+        if(!userRes[0]){
+            res.send(400, {err:"Discount details aren't available"})
+            return
+        }
+        
+        let sendRes = []
+        userRes.forEach((discounts) => {
+            sendRes.push({
+                iddiscounts: discounts.iddiscounts,
+                min_age: discounts.min_age,
+                max_age: discounts.max_age,
+                coefficient: discounts.coefficient,
+                deleted: discounts.deleted
+            });
+        });
+        res.send(200, sendRes)
+    })
+});
+
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3001`)
