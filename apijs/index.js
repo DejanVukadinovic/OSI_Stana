@@ -272,19 +272,11 @@ app.put('/route/delete', jsonParser, authenticateToken, authenticateAdmin, (req,
 app.post('/discount', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
-        if(!req.body.min_age){
-            res.send(400,{err:"You must enter min_age!"})
-            return
-        }
-        else if(!req.body.max_age){
-            res.send(400,{err:"You must enter max_age!"})
-            return
-        }
         else if(!req.body.coefficient){
             res.send(400,{err:"You must enter coefficient!"})
             return
         }
-        await con.promise().query("INSERT INTO discounts(min_age,max_age,coefficient,deleted) VALUES(?,?,?,?)", [req.body.min_age,req.body.max_age,req.body.coefficient,0])
+        await con.promise().query("INSERT INTO discounts(min_age,max_age,coefficient,deleted) VALUES(?,?,?,?)", [1,10,req.body.coefficient,0])
         
         res.send(200, {message:"Discount has been added!"})
     })

@@ -1,6 +1,6 @@
 import Modal from "react-modal"
 import RegisterForm from "./RegisterForm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import CreateReportForm from "./CreateReportForm";
 
@@ -84,7 +84,25 @@ function RouteCard({data}) {
             setdrivers(tmpDrivers)
             console.log(tmpDrivers, drivers)
         })
-        setmodalForm(<form onSubmit={e=>assginDriver(e)} className="flex flex-col justify-center text-2xl">
+        
+    }
+    const openBusModal = (e)=>{
+        console.log(data.idroute)
+        axios.get("http://127.0.0.1:3001/bus/list", {headers}).then(res=>{
+            const tmpBuses = res.data.map(el=><option value={el.idbus}>{el.carrier} Mjesta:{el.seats}</option>)
+            setBuses(tmpBuses)
+            console.log(tmpBuses, buses)
+        })
+        
+    }
+    const openReportModal = (e)=>{
+        setmodalForm(<CreateReportForm id={data.idroute}/>)
+        setIsOpen(true)
+    }
+    useEffect(() => {
+        if(drivers.length){
+
+            setmodalForm(<form onSubmit={e=>assginDriver(e)} className="flex flex-col justify-center text-2xl">
         <label htmlFor="name">Driver</label>
             <select name="driver" id="driver" className="my-2">
                 <option value="-">-</option>
@@ -94,14 +112,12 @@ function RouteCard({data}) {
         </form>)
         setIsOpen(true)
     }
-    const openBusModal = (e)=>{
-        console.log(data.idroute)
-        axios.get("http://127.0.0.1:3001/bus/list", {headers}).then(res=>{
-            const tmpBuses = res.data.map(el=><option value={el.idbus}>{el.carrier} Mjesta:{el.seats}</option>)
-            setBuses(tmpBuses)
-            console.log(tmpBuses, buses)
-        })
-        setmodalForm(<form onSubmit={e=>assignBus(e)} className="flex flex-col justify-center text-2xl">
+    }, [drivers])
+
+    useEffect(() => {
+        if(buses.length){
+
+            setmodalForm(<form onSubmit={e=>assignBus(e)} className="flex flex-col justify-center text-2xl">
         <label htmlFor="name">Bus:</label>
             <select name="bus" id="bus" className="my-2">
                 <option value="-">-</option>
@@ -111,10 +127,8 @@ function RouteCard({data}) {
         </form>)
         setIsOpen(true)
     }
-    const openReportModal = (e)=>{
-        setmodalForm(<CreateReportForm id={data.idroute}/>)
-        setIsOpen(true)
-    }
+    }, [buses])
+    
     return ( 
         <div className="p-4 border-2 border-blue-800 rounded-md flex justify-between">
         <div>

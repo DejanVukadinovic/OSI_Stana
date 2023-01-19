@@ -27,6 +27,8 @@ function Navbar() {
           <>
           <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/users">Users</a>
           <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/stations">Stations</a>
+          <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/bus">Buses</a>
+          <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/discounts">Discounts</a>
           </>
           :""}
           {(islogedin && user?.user_type==2)?
