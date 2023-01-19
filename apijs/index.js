@@ -166,7 +166,7 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
 
 })
 
-app.get('/bus/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/bus/details', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idbus){
@@ -308,7 +308,7 @@ app.post('/bus_class', jsonParser, authenticateToken, authenticateAdmin, (req, r
     })
 })
 
-app.get('/bus/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/bus/list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
@@ -345,13 +345,20 @@ app.post('/route/set_driver', jsonParser, authenticateToken, authenticateAdmin, 
 
         const routeExists = await con.promise().query("SELECT 1 FROM route WHERE idroute = ?", [req.body.idroute]);
         if (!routeExists[0].length) {
-            res.status(400).json({ err: "idroute does not exist in the route table." });
+            res.status(400).json({ err: "Entered idroute does not exist!" });
             return;
         }
 
         const driverExists = await con.promise().query("SELECT 1 FROM driver WHERE iddriver = ?", [req.body.iddriver]);
         if (!driverExists[0].length) {
-            res.status(400).json({ err: "iddriver does not exist in the driver table." });
+            res.status(400).json({ err: "Entered iddriver does not exist!" });
+            return;
+        }
+
+        const routeDriver = await con.promise().query("SELECT 1 FROM route_has_driver WHERE idroute = ?", [req.body.idroute]);
+        if(routeDriver[0].length){
+            await con.promise().query("UPDATE route_has_driver SET iddriver=? WHERE route_has_driver.idroute=?", [req.body.iddriver,req.body.idroute])
+            res.status(400).json({ message: "New driver has been set to the route!" });
             return;
         }
 
@@ -425,7 +432,7 @@ app.get('/route/list', jsonParser, authenticateToken, authenticateAdmin, (req, r
     })
 });
 
-app.get('/station/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/station/list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
@@ -448,7 +455,7 @@ app.get('/station/list', jsonParser, authenticateToken, authenticateAdmin, (req,
     })
 });
 
-app.get('/route/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/route/details', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idroute){
@@ -466,7 +473,7 @@ app.get('/route/details', jsonParser, authenticateToken, authenticateAdmin, (req
     })
 })
 
-app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/route/active_list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         const [userRes]=await con.promise().query("SELECT * FROM route WHERE active = 1")
@@ -647,9 +654,52 @@ app.post('/route/set_bus', jsonParser, authenticateToken, authenticateAdmin, (re
             return;
         }
 
+        const routeBus = await con.promise().query("SELECT 1 FROM route_has_bus WHERE idroute = ?", [req.body.idroute]);
+        if(routeBus[0].length){
+            await con.promise().query("UPDATE route_has_bus SET idbus=? WHERE route_has_bus.idroute=?", [req.body.idbus,req.body.idroute])
+            res.status(400).json({ message: "New bus has been set to the route!" });
+            return;
+        }
+
         await con.promise().query("INSERT INTO route_has_bus (idroute,idbus) VALUES (?,?)", [req.body.idroute, req.body.idbus]);
 
         res.send(200,{ message: "Bus has been set to the route!" });
+    });
+});
+
+app.post('/route/set_discount', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+    con.connect(async function (err) {
+        if (err) throw err;
+        if (!req.body.idroute) {
+            res.status(400).json({ err: "You must enter idroute!" });
+            return;
+        } else if (!req.body.iddiscounts) {
+            res.status(400).json({ err: "You must enter iddiscounts!" });
+            return;
+        }
+
+        const routeExists = await con.promise().query("SELECT 1 FROM route WHERE idroute = ?", [req.body.idroute]);
+        if (!routeExists[0].length) {
+            res.status(400).json({ err: "Entered idroute does not exist!" });
+            return;
+        }
+
+        const discountExists = await con.promise().query("SELECT 1 FROM discounts WHERE iddiscounts = ?", [req.body.iddiscounts]);
+        if (!discountExists[0].length) {
+            res.status(400).json({ err: "Entered iddiscounts does not exist!" });
+            return;
+        }
+        
+        const routeDiscount = await con.promise().query("SELECT 1 FROM route_has_discounts WHERE idroute = ?", [req.body.idroute]);
+        if(routeDiscount[0].length){
+            await con.promise().query("UPDATE route_has_discounts SET iddiscounts=? WHERE route_has_discounts.idroute=?", [req.body.iddiscounts,req.body.idroute])
+            res.status(400).json({ message: "New discount has been set to the route!" });
+            return;
+        }
+
+        await con.promise().query("INSERT INTO route_has_discounts (idroute,iddiscounts) VALUES (?,?)", [req.body.idroute, req.body.iddiscounts]);
+
+        res.send(200,{ message: "Discount has been set to the route!" });
     });
 });
 

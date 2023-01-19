@@ -10,6 +10,7 @@
         "Error":"You must enter idbus!",
         "Error":"Entered route does not exist!",
         "Error":"Entered bus does not exist!",
+        "Message": "New bus has been set to the route!",
         "Message": "Bus has been set to the route!"
     },
     "header":

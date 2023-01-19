@@ -1,8 +1,8 @@
 {
     "req":
     {
-        "idstation":"imestanice",
-        "idstation2":"imestanice2",
+        "idstation":"1",
+        "idstation2":"2",
         "distance":"5",
         "time_estimate":"10"
     },

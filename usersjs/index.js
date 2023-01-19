@@ -415,6 +415,51 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
     })
 })
 
+app.get('/available_drivers', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+    con.connect(async function(err) {
+        if (err) throw err;
+        if (!req.body.time) {
+            res.status(400).json({ err: "You must enter time!" });
+            return;
+        } else if (!req.body.duration) {
+            res.status(400).json({ err: "You must enter duration!" });
+            return;
+        }
+        let availableDrivers = new Set();
+        
+        const [routeRes] = await con.promise().query("SELECT route_has_driver.idroute, iddriver FROM route_has_driver INNER JOIN route ON route_has_driver.idroute = route.idroute WHERE route.time = ?", [req.body.time]);
+    
+        let unavailableDrivers = [];
+        routeRes.forEach((route) => {
+            unavailableDrivers.push(route.iddriver);
+        });
+
+        const [routeRes2] = await con.promise().query("SELECT route_has_driver.idroute, iddriver FROM route_has_driver INNER JOIN route ON route_has_driver.idroute = route.idroute WHERE DATE_ADD(route.time, INTERVAL route.duration HOUR) < ?" ,[req.body.time]);
+        
+        routeRes2.forEach((route) => {
+            availableDrivers.add(route.iddriver);
+        });
+        
+        const [routeRes3] = await con.promise().query("SELECT route_has_driver.idroute, iddriver FROM route_has_driver INNER JOIN route ON route_has_driver.idroute = route.idroute WHERE DATE_ADD(?, INTERVAL ? HOUR) < route.time", [req.body.time, req.body.duration]);
+        
+        routeRes3.forEach((route) => {
+            availableDrivers.add(route.iddriver);
+        });
+
+        if(unavailableDrivers.length){
+            const [driverRes] = await con.promise().query("SELECT iddriver FROM driver WHERE suspended = 0 AND iddriver NOT IN (?)", [unavailableDrivers]);
+            driverRes.forEach((driver) => {
+                availableDrivers.add(driver.iddriver);
+            });
+        }else{
+            const [driverRes] = await con.promise().query("SELECT iddriver FROM driver WHERE suspended = 0");
+            driverRes.forEach((driver) => {
+                availableDrivers.add(driver.iddriver);
+            });
+        }
+        res.send(200, Array.from(availableDrivers));
+    });
+});
 
 app.listen(PORT, HOST);
 console.log(`Running on: http://${HOST}:3003`)
