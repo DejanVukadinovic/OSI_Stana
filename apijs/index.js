@@ -168,15 +168,36 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
               [req.body.stations[i],routeID[0].idroute,i+1])
               }
               if(req.body.iddriver){
+                const [driverRes]=await con.promise().query("SELECT * FROM driver WHERE iddriver=?",[req.body.iddriver])
+                if(!driverRes[0]){
+                    res.send(400,{message:"Driver does not exist."})
+                    return
+                }
+                else{
                 await con.promise().query("INSERT INTO route_has_driver(iddriver,idroute) VALUES(?,?)",[req.body.iddriver,routeID[0].idroute])
               }
+            }
               if(req.body.iddiscount){
+                const [discountRes]=await con.promise().query("SELECT * FROM discount WHERE iddiscount=?",[req.body.iddiscount])
+                if(!discountRes[0]){
+                    res.send(400,{message:"Discount does not exist."})
+                    return
+                }
+                else{
                 await con.promise().query("INSERT INTO route_has_discounts(idroute,iddiscounts) VALUES(?,?)",[routeID[0].idroute,req.body.iddiscount])
               }
+              }
               if(req.body.idbus){
+                const [idbusRes]=await con.promise().query("SELECT * FROM bus WHERE idbus=?",[req.body.idbus])
+                if(!idbusRes[0]){
+                    res.send(400,{message:"Bus does not exist."})
+                    return
+                }
+                else{
                 await con.promise().query("INSERT INTO route_has_bus(idroute,idbus) VALUES(?,?)",[routeID[0].idroute,req.body.idbus])
 
               }
+            }
               res.send(200,{message:"Route registered."})
             }
             }
