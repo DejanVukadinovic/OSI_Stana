@@ -81,6 +81,11 @@ app.put('/login', jsonParser, (req, res)=>{
 
                 await con.promise().query("UPDATE user SET login_num=? WHERE user.username=?",[++userRes[0].login_num,req.body.username])  
             }
+            if(userRes[0].user_type==0){
+               
+                await con.promise().query("UPDATE user SET deleted=? WHERE user.iduser=?",[1,1])
+               
+            }
             const resp = {
                 name:userRes[0].name,
                 login:true,
