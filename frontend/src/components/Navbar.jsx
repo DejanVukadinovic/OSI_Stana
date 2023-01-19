@@ -29,6 +29,17 @@ function Navbar() {
           <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/stations">Stations</a>
           </>
           :""}
+          {(islogedin && user?.user_type==2)?
+          <>
+          <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/tickets">Purchase History</a>
+          </>
+          :""}
+          {(islogedin &&( user?.user_type==0 || user?.user_type==1))?
+          <>
+          <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/reports">Reports</a>
+          </>
+          :""}
+          
         <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/about">About us</a>
         {islogedin?<a className="text-l mt-auto pl-2 cursor-pointer border-l-2 border-blue-800" onClick={flogout}>Log out</a>:""}
         </div>

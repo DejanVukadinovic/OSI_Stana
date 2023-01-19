@@ -8,6 +8,8 @@ import store from "./redux/store";
 import UserList from "./components/UserList";
 import AboutPage from "./components/AboutPage";
 import StationsList from "./components/StationsList";
+import TicketHistory from "./components/TicketHistory";
+import ReportList from "./components/ReportList";
 
 function App() {
 	return (
@@ -19,6 +21,8 @@ function App() {
 					<Route path="/users" element={<UserList />} />
 					<Route path="/about" element={<AboutPage />} />
 					<Route path="/stations" element={<StationsList />} />
+					<Route path="/tickets" element={<TicketHistory />} />
+					<Route path="/reports" element={<ReportList />} />
 				</Routes>
 			</BrowserRouter>
 		</Provider>

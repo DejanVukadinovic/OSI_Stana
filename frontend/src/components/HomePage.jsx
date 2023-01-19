@@ -12,15 +12,28 @@ function HomePage() {
     useEffect(() => {
         const headers = {Authorization: "Token "+user?.token}
         console.log(headers)
-        axios.get("http://127.0.0.1:3001/route/list", {headers}).then(res=>{
-            console.log(res.data)
-            const resArr = res.data.map(el=>{
-                el.date=el.time.split("T")[0]
-                el.time=JSON.stringify(el.time).split("T")[1].slice(0, -6);
-            return <RouteCard data={el}/>})
-            setRes(resArr)
-            
-        })
+        if(user?.user_type==0){
+            axios.get("http://127.0.0.1:3001/route/list", {headers}).then(res=>{
+                console.log(res.data)
+                const resArr = res.data.map(el=>{
+                    el.date=el.time.split("T")[0]
+                    el.time=JSON.stringify(el.time).split("T")[1].slice(0, -6);
+                return <RouteCard data={el}/>})
+                setRes(resArr)
+                
+            })
+        }else{
+            axios.get("http://127.0.0.1:3001/route/active_list", {headers}).then(res=>{
+                console.log(res.data)
+                const resArr = res.data.map(el=>{
+                    el.date=el.time.split("T")[0]
+                    el.time=JSON.stringify(el.time).split("T")[1].slice(0, -6);
+                return <RouteCard data={el}/>})
+                setRes(resArr)
+                
+            })
+        }
+        
         
     }, [])
     

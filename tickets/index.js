@@ -121,7 +121,7 @@ app.post('/ticket/create', jsonParser, authenticateToken, authenticatePassenger,
 app.get("/tickets", authenticateToken, (req, res)=>{
     con.connect( async function(err){
         if(err) {res.send(500);throw err};
-        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.username])
+        const [tickets] = await con.promise().query("SELECT * FROM ticket INNER JOIN passenger ON ticket.idpassenger = passenger.idpassenger INNER JOIN route_has_ticket ON route_has_ticket.idticket = ticket.idticket INNER JOIN route ON route_has_ticket.idroute = route.idroute", [req.user.username])
         res.send(tickets)
     })
 })

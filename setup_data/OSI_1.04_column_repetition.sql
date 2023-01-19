@@ -1,1 +1,1 @@
-ALTER TABLE `OSI_1.04`.`distance` CHANGE distance distance DECIMAL(6,2) NOT NULL;
+ALTER TABLE `OSI_1.04`.`route` RENAME COLUMN `repeat` TO repetition;

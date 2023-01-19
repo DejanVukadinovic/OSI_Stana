@@ -48,8 +48,9 @@ function authenticateToken(req, res, next) {
   function authenticateAdmin(req, res, next) {
     con.connect(async function(err){
         if(err) throw err;
+        console.log(req.user.username)
         const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.username])
-        if(typeRes[0]){res.send(403)}
+        if(typeRes[0].user_type!=0){res.send(403, "Not admin")}
         next()
     })
   }
@@ -466,7 +467,7 @@ app.get('/route/details', jsonParser, authenticateToken, authenticateAdmin, (req
     })
 })
 
-app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/route/active_list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         const [userRes]=await con.promise().query("SELECT * FROM route WHERE active = 1")
@@ -492,7 +493,7 @@ app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, 
     })
 });
 
-app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.put('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idstation || !req.body.idstation2){
@@ -502,7 +503,7 @@ app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdm
         const [distanceRes] = await con.promise().query("SELECT distance, s1.name as name1, s2.name as name2, d.idstation, d.idstation2 FROM distance d join station s1 on d.idstation = s1.idstation join station s2 on d.idstation2 = s2.idstation where (d.idstation = ? and d.idstation2 = ?) or (d.idstation = ? and d.idstation2 = ?)", [req.body.idstation,req.body.idstation2,req.body.idstation2,req.body.idstation])
 
         if(!distanceRes[0]){
-            res.send(400, {err:"Distance details aren't available"})
+            res.send(200, {err:"Distance details aren't available"})
             return
         }
         const sendRes={idstation: distanceRes[0].idstation, name1: distanceRes[0].name1, idstation2: distanceRes[0].idstation2, name2: distanceRes[0].name2, distance:distanceRes[0].distance}
