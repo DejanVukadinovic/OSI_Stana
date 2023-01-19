@@ -166,7 +166,7 @@ app.post('/route', jsonParser, authenticateToken, authenticateAdmin, (req, res)=
 
 })
 
-app.get('/bus/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/bus/details', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idbus){
@@ -308,7 +308,7 @@ app.post('/bus_class', jsonParser, authenticateToken, authenticateAdmin, (req, r
     })
 })
 
-app.get('/bus/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/bus/list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
@@ -398,7 +398,7 @@ app.put('/bus/activate', jsonParser, authenticateToken, authenticateAdmin, (req,
     })
 });
 
-app.get('/route/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/route/list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
@@ -425,7 +425,7 @@ app.get('/route/list', jsonParser, authenticateToken, authenticateAdmin, (req, r
     })
 });
 
-app.get('/station/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/station/list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
@@ -448,7 +448,7 @@ app.get('/station/list', jsonParser, authenticateToken, authenticateAdmin, (req,
     })
 });
 
-app.get('/route/details', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/route/details', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idroute){
@@ -466,7 +466,7 @@ app.get('/route/details', jsonParser, authenticateToken, authenticateAdmin, (req
     })
 })
 
-app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/route/active_list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         const [userRes]=await con.promise().query("SELECT * FROM route WHERE active = 1")
@@ -492,7 +492,7 @@ app.get('/route/active_list', jsonParser, authenticateToken, authenticateAdmin, 
     })
 });
 
-app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/distance/two_stations', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idstation || !req.body.idstation2){
@@ -512,7 +512,7 @@ app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdm
 
 
 
-app.get('/distance/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.get('/distance/list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
 
