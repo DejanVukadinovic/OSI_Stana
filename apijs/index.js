@@ -398,7 +398,7 @@ app.put('/bus/activate', jsonParser, authenticateToken, authenticateAdmin, (req,
     })
 });
 
-app.get('/route/list', jsonParser, authenticateToken, (req, res)=>{
+app.get('/route/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
@@ -492,7 +492,7 @@ app.get('/route/active_list', jsonParser, authenticateToken, (req, res)=>{
     })
 });
 
-app.get('/distance/two_stations', jsonParser, authenticateToken, (req, res)=>{
+app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idstation || !req.body.idstation2){
@@ -512,7 +512,7 @@ app.get('/distance/two_stations', jsonParser, authenticateToken, (req, res)=>{
 
 
 
-app.get('/distance/list', jsonParser, authenticateToken, (req, res)=>{
+app.get('/distance/list', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
 
