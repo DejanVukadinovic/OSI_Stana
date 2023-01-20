@@ -759,7 +759,7 @@ app.get('/busclass/list', jsonParser, authenticateToken, authenticateAdmin, (req
     })
 });
 
-app.get('/available_buses', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+app.put('/available_buses', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
     con.connect(async function(err) {
         if (err) throw err;
         if (!req.body.time) {

@@ -411,7 +411,7 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
     })
 })
 
-app.get('/available_drivers', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+app.put('/available_drivers', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
     con.connect(async function(err) {
         if (err) throw err;
         if (!req.body.time) {

@@ -10,17 +10,24 @@ function CreateBusForm({id}) {
     const [busClasses, setbusClasses] = useState([])
  
     useEffect(() => {
-      axios.get("http://127.0.0.1:3004/report/create")
+      axios.get("http://127.0.0.1:3001/busclass/list", {headers}).then(res=>{
+        const displayClasses = res.data.map(el=><option value={el.idbus_class}>{el.description}</option>)
+        setbusClasses(displayClasses)
+        console.log(res.data)
+      })
     }, [])
     
     
     let report = (e)=>{
         e.preventDefault()
         const fData = new FormData(e.target)
-        const body={route:id, content:fData.get("content")}
+        const body={carrier:fData.get("carrier"), seats:fData.get("seats"), idbus_class:fData.get("bus_class")}
         console.log()
-        axios.post("http://127.0.0.1:3001/bus", {route:id, content:fData.get("content")}, {headers}).then(res=>{
+        axios.post("http://127.0.0.1:3001/bus",
+        body,
+        {headers}).then(res=>{
             console.log(res)
+            window.location.reload()
         })
           }
         
@@ -30,11 +37,11 @@ function CreateBusForm({id}) {
     <input type="text" name="carrier" id="carrier" className="border-b-2 border-blue-800 outline-none rounded-t-md mb-2" />
     <label htmlFor="seats">Number of seats</label>
     <input type="number" name="seats" id="seats" className="border-b-2 border-blue-800 outline-none rounded-t-md mb-2" />
-    <select name="bus_class" id="bus_class">
+    <select name="bus_class" id="bus_class" className="border-b-2 border-blue-800">
         {busClasses}
     </select>
     
-    <button type="submit" className="p-2 bg-blue-800 text-white rounded-lg">Report</button>
+    <button type="submit" className="p-2 mt-2 bg-blue-800 text-white rounded-lg">Create</button>
   </form> );
 }
 

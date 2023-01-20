@@ -20,6 +20,7 @@ function CreateBusclassForm({id}) {
         console.log()
         axios.post("http://127.0.0.1:3001/bus_class", body, {headers}).then(res=>{
             console.log(res)
+            window.location.reload()
         })
           }
         
@@ -29,7 +30,7 @@ function CreateBusclassForm({id}) {
     <input type="text" name="description" id="description" className="border-b-2 border-blue-800 outline-none rounded-t-md mb-2" />
     <label htmlFor="price_coefficient">Price coefficient</label>
     <input type="text" name="price_coefficient" id="price_coefficient" className="border-b-2 border-blue-800 outline-none rounded-t-md mb-2" />
-    <button type="submit" className="p-2 bg-blue-800 text-white rounded-lg">Report</button>
+    <button type="submit" className="p-2 bg-blue-800 text-white rounded-lg">Create</button>
   </form> );
 }
 

@@ -14,11 +14,11 @@ function DiscountList() {
     const [Buses, setBuses] = useState([])
 
     useEffect(() => {
-      axios.get("http://127.0.0.1:3001/discount/list", {headers}).then(res=>{
+      axios.get("http://127.0.0.1:3001/discounts/list", {headers}).then(res=>{
         console.log(res)
         const displayBuses = res.data.map(el=>
         <div className="p-4 border-2 border-blue-800 rounded-md flex justify-between">
-            {el.iddiscount}:{el.description} - {el.price_coefficient} Seats
+            {el.iddiscounts} : x{el.coefficient}
         </div>)
         console.log(displayBuses)
         setBuses(displayBuses)

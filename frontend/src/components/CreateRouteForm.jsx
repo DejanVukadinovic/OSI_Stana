@@ -6,11 +6,17 @@ function CreateRouteForm() {
     const [sData, setsData] = useState()
     const [displayForm, setdisplayForm] = useState()
     const [stations, setstations] = useState()
+    const [drivers, setDrivers] = useState([])
+    const [buses, setbuses] = useState()
+    const [discounts, setdiscounts] = useState()
     const [stationData, setstationData] = useState([])
     const [chosenStations, setchosenStations] = useState([])
     const [chosenStationsData, setchosenStationsData] = useState([])
     const [addDistance, setaddDistance] = useState({show:false})
     const [errors, seterrors] = useState({})
+    const [driver, setdriver] = useState()
+    const [bus, setbus] = useState()
+    const [discount, setdiscount] = useState()
 
 
     const user = JSON.parse(localStorage.getItem("user"))
@@ -41,8 +47,19 @@ function CreateRouteForm() {
         console.log(res.data)
         setstationData(res.data)
         const options = res.data?.map(el=>{return <option value={el.idstation}>{el.name}, @{el.country}</option>})
-        setstations(options)
-        })
+        setstations(options)})
+        axios.put("http://127.0.0.1:3002/available_drivers",{time:body.time, duration:body.duration}, {headers}).then(res=>{
+        console.log(res.data)
+        const options = res.data?.map(el=>{return <option value={el.iddriver}>{el.name}, @{el.username}</option>})
+        setDrivers(options)})
+        axios.put("http://127.0.0.1:3001/available_buses",{time:body.time, duration:body.duration}, {headers}).then(res=>{
+        console.log(res.data)
+        const options = res.data?.map(el=>{return <option value={el.idbus}>{el.carrier}, {el.seats} Seats</option>})
+        setbuses(options)})
+        axios.get("http://127.0.0.1:3001/discounts/list",{headers}).then(res=>{
+        console.log(res.data)
+        const options = res.data?.map(el=>{return <option value={el.iddiscounts}>{el.iddiscounts}: x{el.coefficient}</option>})
+        setdiscounts(options)})
         }else{
             seterrors(tmperr)
         }
@@ -85,12 +102,32 @@ function CreateRouteForm() {
         //</div>
         //setchosenStations([...chosenStations,displayStation ])
     }
+    const chooseDriver = e =>{
+        e.preventDefault();
+        console.log(e.target.value)
+        setdriver(e.target.value)
+        console.log(driver)
+    }
+    const chooseBus = e =>{
+        e.preventDefault();
+        console.log(e.target.value)
+        setbus(e.target.value)
+        console.log(driver)
+    }
+    const chooseDiscount = e =>{
+        e.preventDefault();
+        console.log(e.target.value)
+        setdiscount(e.target.value)
+  
+    }
     const createRoute = e =>{
         e.preventDefault()
         const stationSData = chosenStationsData.map(el=>el.idstation)
-        console.log({...sData, stations:stationSData})
-        axios.post("http://127.0.0.1:3001/route", {...sData, stations:stationSData}, {headers}).then(res=>{
-            window.location.reload()
+        console.log(driver)
+        const data = {...sData, stations:stationSData, iddriver:driver, idbus:bus, iddiscount:discount}
+        console.log(data)
+        axios.post("http://127.0.0.1:3001/route", data, {headers}).then(res=>{
+        window.location.reload()
         })
     }
     const uploadDistance = (e, body) =>{
@@ -132,6 +169,11 @@ function CreateRouteForm() {
     }, [errors])
 
     useEffect(() => {
+        console.log(bus,driver)
+      }, [bus, driver])
+
+
+    useEffect(() => {
         const displayStations = chosenStationsData.map(station=>{
             return <div className="pl-2 border-2 border-gray-400 text-sm rounded-md">
             {station.name}
@@ -154,6 +196,21 @@ function CreateRouteForm() {
                 <option value="-">-</option>
                 {stations}
             </select>
+            <label htmlFor="iddriver">Driver:</label>
+            <select name="iddriver" id="iddriver" onChange={chooseDriver} className="border-b-2 border-blue-800 outline-none rounded-t-md" >
+                <option value="0">-</option>
+                {drivers}
+            </select>
+            <label htmlFor="idbus">Bus:</label>
+            <select name="idbus" id="idbus" onChange={chooseBus} className="border-b-2 border-blue-800 outline-none rounded-t-md" >
+                <option value="0">-</option>
+                {buses}
+            </select>
+            <label htmlFor="iddiscounts">Bus:</label>
+            <select name="iddiscounts" id="iddiscounts" onChange={chooseDiscount} className="border-b-2 border-blue-800 outline-none rounded-t-md" >
+                <option value="0">-</option>
+                {discounts}
+            </select>
         {addDistance.show?
         <div className="flex flex-col">
             <label htmlFor="distance">Distance:</label>
@@ -169,7 +226,7 @@ function CreateRouteForm() {
 
             setdisplayForm(form)
         }
-    }, [stations, chosenStations, addDistance])
+    }, [stations, chosenStations, addDistance, drivers, buses, discounts])
     
    
     return ( 
