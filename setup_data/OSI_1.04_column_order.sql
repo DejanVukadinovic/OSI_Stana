@@ -1,1 +1,1 @@
-ALTER TABLE station_has_route RENAME COLUMN `order` to order_num;
+ALTER TABLE `OSI_1.04`.station_has_route RENAME COLUMN `order` to order_num;

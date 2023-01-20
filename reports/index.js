@@ -105,9 +105,21 @@ app.post('/report/create', jsonParser, authenticateToken, (req, res)=>{
 app.get("/reports", authenticateToken, (req, res)=>{
     con.connect( async function(err){
         if(err) {res.send(500);throw err};
-        const [report] = await con.promise().query("SELECT report.idreport, report.idroute FROM report")
-        res.set('Access-Control-Allow-Origin', '*')
-        res.send(report)
+        const [user] = await con.promise().query("SELECT * FROM user WHERE username =?", [req.user.username])
+        console.log(user)
+        if(user[0]?.user_type==0){
+            const [report] = await con.promise().query("SELECT * FROM report")
+            res.set('Access-Control-Allow-Origin', '*')
+            res.send(report)
+        }else if(user[0]?.user_type==1){
+            const [report] = await con.promise().query("SELECT * FROM report inner join route on report.idroute = route.idroute inner join route_has_driver on route.idroute = route_has_driver.idroute natural join driver inner join user on user.iduser = driver.iduser where username = ?", [req.user.username])
+
+            res.send(report)
+        }else{
+            res.send(403)
+        }
+        
+        
     })
 })
 

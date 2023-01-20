@@ -43,8 +43,8 @@ function authenticateToken(req, res, next) {
 function authenticateAdmin(req, res, next) {
     con.connect(async function(err){
         if(err) throw err;
-        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.user])
-        if(typeRes[0]){res.send(403)}
+        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.username])
+        if(typeRes[0].user_type!=0){res.send(403, "Not admin")}
         next()
     })
   }
@@ -382,11 +382,7 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
-        if(!req.body.username){
-            res.send(400,{err:"You must enter a username."})
-            return
-        }
-        else if(!req.body.old_password){
+        if(!req.body.old_password){
             res.send(400,{err:"You must enter the old password."})
             return
         }
@@ -394,7 +390,7 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
             res.send(400,{err:"You must enter the new password."})
             return
         }
-        const [tmpRes] = await con.promise().query("SELECT * FROM user WHERE username=?",[req.body.username])
+        const [tmpRes] = await con.promise().query("SELECT * FROM user WHERE username=?",[req.user.username])
         const hash_old=crypto.createHash('sha256').update(req.body.old_password).digest('hex')
         if(!tmpRes[0]){
             res.send(400, {err:"Username does not exist."})
@@ -415,7 +411,7 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
     })
 })
 
-app.get('/available_drivers', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+app.put('/available_drivers', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
     con.connect(async function(err) {
         if (err) throw err;
         if (!req.body.time) {

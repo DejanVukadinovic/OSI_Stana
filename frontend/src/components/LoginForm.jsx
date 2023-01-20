@@ -26,7 +26,10 @@ function LoginForm() {
             dispatch(login(res.data))
             localStorage.setItem("user",JSON.stringify(res.data))
             navigate("/home")
-          }})
+          }}).catch(err=>{
+            console.log(err.response.data.err)
+            seterror(err.response.data.err)
+          })
           }
     
     return ( <form onSubmit={e=>flogin(e)} className="flex flex-col justify-center text-2xl">

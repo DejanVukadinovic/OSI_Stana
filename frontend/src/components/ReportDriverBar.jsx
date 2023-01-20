@@ -3,7 +3,8 @@ import RegisterForm from "./RegisterForm";
 import { useEffect, useState } from "react";
 import CreateStationForm from "./CreateStationForm";
 import CreateRouteForm from "./CreateRouteForm";
-function RouteAdminBar() {
+import CreateReportForm from "./CreateReportForm";
+function ReportDriverBar() {
     const user = JSON.parse(localStorage.getItem("user")) ?? {}
     const [IsOpen, setIsOpen] = useState(false)
     const customStyles = {
@@ -30,10 +31,10 @@ function RouteAdminBar() {
     }
     return (
         
-    <>{user?.user_type==0?
+    <>{user?.user_type==1?
     <>
     <div className="px-4 py-4 flex justify-end ">
-            <button className="bg-blue-800 py-2 px-4 rounded-md text-white" onClick={openModal}>Add route</button>
+            <button className="bg-blue-800 py-2 px-4 rounded-md text-white" onClick={openModal}>Add report</button>
         </div>
         <Modal
             isOpen={IsOpen}
@@ -42,7 +43,7 @@ function RouteAdminBar() {
             style={customStyles}
             contentLabel="Example Modal"
             >
-            <CreateRouteForm/>
+            <CreateReportForm/>
             <button onClick={closeModal} className="bg-red-600 py-2 px-6 mt-2 text-white w-full rounded-md text-2xl">Cancel</button>
         </Modal>
     </>:""}
@@ -50,4 +51,4 @@ function RouteAdminBar() {
     </>  );
 }
 
-export default RouteAdminBar;
+export default ReportDriverBar;

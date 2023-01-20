@@ -48,8 +48,9 @@ function authenticateToken(req, res, next) {
   function authenticateAdmin(req, res, next) {
     con.connect(async function(err){
         if(err) throw err;
-        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.user])
-        if(typeRes[0]){res.send(403)}
+        console.log(req.user.username)
+        const [typeRes] = await con.promise().query("SELECT user_type FROM user WHERE username = ?", [req.user.username])
+        if(typeRes[0].user_type!=0){res.send(403, "Not admin")}
         next()
     })
   }
@@ -70,7 +71,7 @@ app.post('/ticket/create', jsonParser, authenticateToken, (req, res)=>{
 app.get("/tickets", authenticateToken, (req, res)=>{
     con.connect( async function(err){
         if(err) {res.send(500);throw err};
-        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.user])
+        const [tickets] = await con.promise().query("SELECT ticket.idticket, route_has_ticket.idroute FROM ticket NATURAL JOIN passenger NATURAL JOIN user NATUAL JOIN route_has_ticket where username = ?", [req.user.username])
         res.send(tickets)
     })
 })
@@ -311,19 +312,11 @@ app.put('/route/delete', jsonParser, authenticateToken, authenticateAdmin, (req,
 app.post('/discount', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
-        if(!req.body.min_age){
-            res.send(400,{err:"You must enter min_age!"})
-            return
-        }
-        else if(!req.body.max_age){
-            res.send(400,{err:"You must enter max_age!"})
-            return
-        }
         else if(!req.body.coefficient){
             res.send(400,{err:"You must enter coefficient!"})
             return
         }
-        await con.promise().query("INSERT INTO discounts(min_age,max_age,coefficient,deleted) VALUES(?,?,?,?)", [req.body.min_age,req.body.max_age,req.body.coefficient,0])
+        await con.promise().query("INSERT INTO discounts(min_age,max_age,coefficient,deleted) VALUES(?,?,?,?)", [1,10,req.body.coefficient,0])
         
         res.send(200, {message:"Discount has been added!"})
     })
@@ -539,7 +532,7 @@ app.get('/route/active_list', jsonParser, authenticateToken, (req, res)=>{
     })
 });
 
-app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+app.put('/distance/two_stations', jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         if(!req.body.idstation || !req.body.idstation2){
@@ -549,7 +542,7 @@ app.get('/distance/two_stations', jsonParser, authenticateToken, authenticateAdm
         const [distanceRes] = await con.promise().query("SELECT distance, s1.name as name1, s2.name as name2, d.idstation, d.idstation2 FROM distance d join station s1 on d.idstation = s1.idstation join station s2 on d.idstation2 = s2.idstation where (d.idstation = ? and d.idstation2 = ?) or (d.idstation = ? and d.idstation2 = ?)", [req.body.idstation,req.body.idstation2,req.body.idstation2,req.body.idstation])
 
         if(!distanceRes[0]){
-            res.send(400, {err:"Distance details aren't available"})
+            res.send(200, {err:"Distance details aren't available"})
             return
         }
         const sendRes={idstation: distanceRes[0].idstation, name1: distanceRes[0].name1, idstation2: distanceRes[0].idstation2, name2: distanceRes[0].name2, distance:distanceRes[0].distance}
@@ -766,7 +759,7 @@ app.get('/busclass/list', jsonParser, authenticateToken, authenticateAdmin, (req
     })
 });
 
-app.get('/available_buses', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
+app.put('/available_buses', jsonParser, authenticateToken, authenticateAdmin, (req, res) => {
     con.connect(async function(err) {
         if (err) throw err;
         if (!req.body.time) {
