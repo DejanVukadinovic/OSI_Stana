@@ -405,7 +405,7 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
             return
         }
         const hash = crypto.createHash('sha256').update(req.body.new_password).digest('hex')
-        await con.promise().query("UPDATE user SET password=? WHERE user.username=?",[hash,req.body.username])
+        await con.promise().query("UPDATE user SET password=? WHERE user.username=?",[hash,req.user.username])
         console.log(req.body)
         res.send(200, {message:"Password changed."})
     })
