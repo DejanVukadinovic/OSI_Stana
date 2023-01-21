@@ -67,24 +67,25 @@ app.put('/login', jsonParser, (req, res)=>{
             res.send(400,{err:"You must enter a password."})
             return
         }
-        const [userRes] = await con.promise().query("SELECT * FROM user WHERE username = ?", [req.body.username])
-        const hash = crypto.createHash('sha256').update(req.body.password).digest('hex');
-        if(!userRes[0]){
-            res.send(400, {err:"User does not exist."})
-        }
+        const [userRes] = await con.promise().query("SELECT * FROM user left join driver on driver.iduser = user.iduser left join passenger on passenger.iduser = user.iduser where username = ? and (driver.suspended=0 or passenger.suspended = 0 or user.user_type = 0)", [req.body.username])
+
+            const hash = crypto.createHash('sha256').update(req.body.password).digest('hex');
+            if(!userRes[0]){
+                res.send(400, {err:"User does not exist."})
+            }
         else if(userRes[0].password==hash){
             if(userRes[0].deleted==1){
                 await con.promise().query("UPDATE user SET deleted=? WHERE user.username=?",[1,req.body.username])
             }
             let password_change=userRes[0].login_num<LOGIN_LIMIT?false:true;
             if(password_change){
-
+                
                 await con.promise().query("UPDATE user SET login_num=? WHERE user.username=?",[++userRes[0].login_num,req.body.username])  
             }
             if(userRes[0].user_type==0){
-               
+                
                 await con.promise().query("UPDATE user SET deleted=? WHERE user.iduser=?",[1,1])
-               
+                
             }
             const resp = {
                 name:userRes[0].name,
@@ -97,6 +98,7 @@ app.put('/login', jsonParser, (req, res)=>{
         }else{
             res.send(403, {err:"Wrong password"})
         }
+    
     })
 })
 
@@ -340,17 +342,12 @@ app.get('/passenger/details', jsonParser, authenticateToken, authenticateAdmin, 
 app.put('/delete', jsonParser, authenticateToken,  (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
-        console.log(req.body)
-        if(!req.body.username){
-            res.send(400,{err:"You must enter a username."})
-            return
-        }
-        const [tmpRes] = await con.promise().query("SELECT * FROM user WHERE username=?",[req.body.username])
+        const [tmpRes] = await con.promise().query("SELECT * FROM user WHERE username=?",[req.user.username])
         if(!tmpRes[0]){
             res.send(400, {err:"Username does not exist."})
             return
         }
-        await con.promise().query("UPDATE user SET deleted=? WHERE user.username=?",[1,req.body.username])
+        await con.promise().query("UPDATE user SET deleted=? WHERE user.username=?",[1,req.user.username])
         res.send(200, {message:"Account deleted."})
     })
 })
@@ -405,7 +402,7 @@ app.put('/password', jsonParser, authenticateToken,  (req, res)=>{
             return
         }
         const hash = crypto.createHash('sha256').update(req.body.new_password).digest('hex')
-        await con.promise().query("UPDATE user SET password=? WHERE user.username=?",[hash,req.user.username])
+        await con.promise().query("UPDATE user SET password=?, login_num=0 WHERE user.username=?",[hash,req.user.username])
         console.log(req.body)
         res.send(200, {message:"Password changed."})
     })

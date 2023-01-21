@@ -3,6 +3,7 @@ import RegisterForm from "./RegisterForm";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import CreateReportForm from "./CreateReportForm";
+import DetailsView from "./DetailsView";
 
 function RouteCard({data}) {
     const [IsOpen, setIsOpen] = useState(false)
@@ -42,6 +43,7 @@ function RouteCard({data}) {
         const sdata = {
             bus:fData.get("bus")
         }
+        axios.post("http://127.0.0.1:3001/route/set_bus", {idroute:data.idroute, ...sdata}, {headers})
         console.log("assgining Buses", sdata)
     }
     const customStyles = {
@@ -99,6 +101,10 @@ function RouteCard({data}) {
         setmodalForm(<CreateReportForm id={data.idroute}/>)
         setIsOpen(true)
     }
+    const openDetails = (e)=>{
+        setmodalForm(<DetailsView data={data}/>)
+        setIsOpen(true)
+    }
     useEffect(() => {
         if(drivers.length){
 
@@ -148,6 +154,7 @@ function RouteCard({data}) {
             <div className="flex flex-col gap-2">
             <a className="bg-blue-800 rounded-md p-2 text-white text-center cursor-pointer" onClick={e=>openDriverModal(e)}>Assign driver</a>
             <a className="bg-blue-800 rounded-md p-2 text-white text-center cursor-pointer" onClick={e=>openBusModal(e)}>Assign bus</a>
+            <a className="bg-blue-800 rounded-md p-2 text-white text-center cursor-pointer" onClick={e=>openDetails(e)}>Details</a>
             </div>
             :<a className="bg-blue-800 rounded-md p-2 text-white text-center cursor-pointer" onClick={e=>openReportModal(e)}>Add report</a>
             }

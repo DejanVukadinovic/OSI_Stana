@@ -1,6 +1,6 @@
 import axios from "axios"
 
-function UserCard({user}) {
+function UserCard({user, reload, setreload}) {
     const logedUser = JSON.parse(localStorage.getItem("user"))
     const headers = {Authorization: "Token "+logedUser?.token, "Content-Type":"application/json"}
     const suspended = user.suspended ?? false;
@@ -8,15 +8,19 @@ function UserCard({user}) {
     const suspend = (e)=>{
         e.preventDefault()
         console.log('suspending', user.username)
-        if(suspend){
+        console.log(suspended)
+        if(suspended){
             axios.put("http://127.0.0.1:3002/activate",  {username:user.username}, {headers})
         .then(res=>{
             console.log(res)
+            setreload(!reload)
         })
         }else{
             axios.put("http://127.0.0.1:3002/suspend",  {username:user.username}, {headers})
             .then(res=>{
                 console.log(res)
+            setreload(!reload)
+
             })
         }
         
