@@ -14,11 +14,25 @@ function Navbar() {
   const navigate = useNavigate();
   const [IsOpen, setIsOpen] = useState(false);
   const [error, seterror] = useState();
+  const [missing, setmissing] = useState([]);
 
   const flogout = (e) => {
-    localStorage.setItem("user", "{}");
-    dispatch(logout());
-    navigate("/");
+    if(user.password_change){
+      setIsOpen(true)
+    }else{
+
+      localStorage.setItem("user", "{}");
+      dispatch(logout());
+      navigate("/");
+    }
+  };
+  const fdelete = (e) => {
+    axios.put("http://127.0.0.1:3002/delete",{}, {headers}).then(res=>{
+
+      localStorage.setItem("user", "{}");
+      dispatch(logout());
+      navigate("/");
+    })
   };
   const fPassChange = (e) => {
     e.preventDefault();
@@ -27,7 +41,10 @@ function Navbar() {
       axios.put("http://127.0.0.1:3002/password",
       { old_password: fData.get("old_password"), new_password: fData.get("password") },
       { headers })
-      .then((res) => window.location.reload());
+      .then((res) => {
+      localStorage.setItem("user", "{}");
+      dispatch(logout());
+      navigate("/");});
     }
   };
 
@@ -43,7 +60,19 @@ function Navbar() {
   };
   useEffect(() => {
     console.log(islogedin, user.user_type);
+    if(user.password_change){
+      setIsOpen(true)
+    }
   }, [user]);
+
+  useEffect(() => {
+    if(user.user_type==0){
+      axios.get("http://127.0.0.1:3001/latereports", {headers}).then(res=>{
+        setmissing(res.data)
+      })
+    }
+  }, [])
+  
 
   Modal.setAppElement("#root");
   function openModal() {
@@ -99,6 +128,12 @@ function Navbar() {
             <>
               <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" href="/reports">
                 Reports
+                {islogedin && user?.user_type == 0?
+                <span className="px-2 text-red-600">
+                  {missing?.length}
+
+                </span>
+                :""}
               </a>
             </>
           ) : (
@@ -116,9 +151,14 @@ function Navbar() {
             ""
           )}
           {islogedin ? (
-            <a className="text-l mt-auto pl-2 cursor-pointer border-l-2 border-blue-800" onClick={flogout}>
+            <>
+            <a className="text-l mt-auto px-2 cursor-pointer border-l-2 border-blue-800" onClick={flogout}>
               Log out
             </a>
+            <a className="text-l mt-auto pl-2 cursor-pointer border-l-2 border-blue-800" onClick={fdelete}>
+              Delete user
+            </a></>
+            
           ) : (
             ""
           )}
@@ -133,7 +173,7 @@ function Navbar() {
           <label htmlFor="repeat_password">Repeat password</label>
           <input type="password" name="repeat_password" id="repeat_password" className="border-b-2 border-blue-800 outline-none rounded-t-md mb-2" />
           <button type="submit" className="p-2 bg-blue-800 text-white rounded-lg">
-            Report
+            Change password
           </button>
         </form>
         <button onClick={closeModal} className="bg-red-600 py-2 px-6 mt-2 text-white w-full rounded-md text-2xl">

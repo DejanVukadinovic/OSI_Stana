@@ -469,7 +469,7 @@ app.get('/station/list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
         console.log(req.body)
-        const [userRes]=await con.promise().query("SELECT * FROM station")
+        const [userRes]=await con.promise().query("SELECT * FROM station where deleted=0")
         if(!userRes[0]){
             res.send(400, {err:"Station details aren't available"})
             return
@@ -509,7 +509,7 @@ app.get('/route/details', jsonParser, authenticateToken, (req, res)=>{
 app.get('/route/active_list', jsonParser, authenticateToken, (req, res)=>{
     con.connect(async function(err){
         if(err) throw err;
-        const [userRes]=await con.promise().query("SELECT * FROM route WHERE active = 1")
+        const [userRes]=await con.promise().query("SELECT * FROM route WHERE active = 1 and CURRENT_TIMESTAMP()<route.time")
         if(!userRes[0]){
             res.send(400, {err:"Route details aren't available"})
             return
@@ -823,6 +823,27 @@ app.get('/discounts/list', jsonParser, authenticateToken, (req, res)=>{
         res.send(200, sendRes)
     })
 });
+app.get("/latereports", jsonParser, authenticateToken, authenticateAdmin, (req, res)=>{
+    con.connect(async function(err){
+        if(err) throw err;
+        const missingList = []
+        const [routes] = await con.promise().query("select * from route where DATE_ADD(route.time, INTERVAL route.duration+24 HOUR) < current_timestamp()")
+        for(let i = 0; i<routes.length; i++){
+        
+            const [reports] = await con.promise().query("select * from report where idroute =?", [routes[i].idroute])
+            console.log(reports.length)
+            if(reports.length==0){
+                console.log(reports.length, routes[i])
+                missingList.push(routes[i]);
+            }
+            console.log(missingList)
+
+
+        }
+        console.log("missing:",missingList)
+        res.send(200, missingList)
+    })
+})
 
 app.use('/pdf', express.static(__dirname + '/tickets'));
 app.listen(PORT, HOST);

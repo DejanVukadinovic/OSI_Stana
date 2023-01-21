@@ -14,14 +14,15 @@ function UserList() {
     const [IsOpen, setIsOpen] = useState(false)
     const [regType, setregType] = useState("admin")
     const [listType, setlistType] = useState(useSelector(state=>state.display.displayUserType)??"")
+    const [reload, setreload] = useState(false)
     useEffect(() => {
         axios.get("http://127.0.0.1:3002/list"+listType, {headers}).then(res=>{
         console.log(res.data)
-        const users = res.data.map(el=><UserCard user={el}/>)
+        const users = res.data.map(el=><UserCard user={el} reload={reload} setreload={setreload}/>)
         setdisplayUsers(users)
         })
        
-    }, [listType])
+    }, [listType, reload])
     
     const customStyles = {
         content: {
