@@ -1,0 +1,21 @@
+{
+    "req":
+    {
+        "min_age":"5",
+        "max_age":"65",
+        "coefficient":"2"
+    },
+    "res":
+    {
+        "Error":"You must enter min_age!",
+        "Error":"You must enter max_age!",
+        "Error":"You must enter coefficient!",
+        "Message": "Discount has been added!"
+    },
+    "header":
+    {
+        "path":"/discount",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
+        "method":"POST"
+    }
+}

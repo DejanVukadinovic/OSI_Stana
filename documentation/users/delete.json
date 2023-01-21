@@ -1,0 +1,16 @@
+{
+    "req":
+    {
+        "username":"Lala"
+    },
+    "res":
+    {
+        "Message": "Account deleted",
+        "Error":"User with this username does not exist."
+    },
+    "header":
+    {
+        "path":"/delete",
+        "method":"PUT"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "req":
+    {
+        "idbus":"1"
+    },
+    "res":
+    {
+        "Error":"You must enter idbus!",
+        "Message": "Bus details aren't available!"
+    },
+    "header":
+    {
+        "path":"/bus/details",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
+        "method":"GET"
+    }
+}

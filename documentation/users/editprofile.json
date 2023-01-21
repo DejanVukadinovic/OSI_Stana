@@ -1,0 +1,17 @@
+{
+    "req":
+    {
+        "username":"Maja12345",
+        "new_name":"Marija"
+    },
+    "res":
+    {
+        "Message": "Name changed",
+        "Error":"User with this username does not exist."
+    },
+    "header":
+    {
+        "path":"/edit_profile",
+        "method":"PUT"
+    }
+}

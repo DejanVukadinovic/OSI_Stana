@@ -1,0 +1,18 @@
+{
+    "req":
+    {
+        "idroute":"1"
+    },
+    "res":
+    {
+        "Error":"You must enter idroute!",
+        "Error":"Route with that id doesn't exist",
+        "Message": "Route deleted!"
+    },
+    "header":
+    {
+        "path":"/route/delete",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
+        "method":"PUT"
+    }
+}

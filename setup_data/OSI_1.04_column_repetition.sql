@@ -1,0 +1,1 @@
+ALTER TABLE `OSI_1.04`.`route` RENAME COLUMN `repeat` TO repetition;

@@ -1,0 +1,18 @@
+{
+    "req":
+    {
+        "idbus":"1"
+    },
+    "res":
+    {
+        "Error":"You must enter idbus!",
+        "Error":"Bus with this idbus doesn't exist",
+        "Message": "Bus is_working value has been set to 0!"
+    },
+    "header":
+    {
+        "path":"/bus/deactivate",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
+        "method":"PUT"
+    }
+}

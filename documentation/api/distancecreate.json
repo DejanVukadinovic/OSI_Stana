@@ -1,0 +1,21 @@
+{
+    "req":
+    {
+        "idstation":"1",
+        "idstation2":"2",
+        "distance":"5",
+        "time_estimate":"10"
+    },
+    "res":
+    {
+        "Error":"You must enter all required fields, idstation, idstation2, distance and time estimate",
+        "Error":"One or both of the stations are deleted.",
+        "Message": "Distance has been set!"
+    },
+    "header":
+    {
+        "path":"/distance/create",
+        "Authorization":"Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNjczNzE4MDQ5fQ.No3p4pWCoof8fkI-kScJK7maYjuvT5WhSi9LxoUiZwA",
+        "method":"POST"
+    }
+}
